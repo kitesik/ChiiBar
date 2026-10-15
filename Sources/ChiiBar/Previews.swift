@@ -39,6 +39,7 @@ enum Previews {
         }
         save("character_sheet", CGSize(width: 700, height: 150), CharacterSheet())
         save("menu_faces", CGSize(width: 210, height: 30), MenuFaceSheet())
+        renderHero(to: out)
         renderMotion(to: out)
         renderConstruction(to: out)
         renderDiscovery(to: out)
@@ -97,6 +98,30 @@ enum Previews {
         save("popover_friends_all", popSize, PopoverView(model: full))
         save("popover_first_draw", popSize, PopoverView(model: AppModel(state: GameState(now: now), stateURL: nil, fixedNow: now)))
         print(files.joined(separator: "\n"))
+    }
+
+    /// README mascot, rendered from the same original sprite as the app.
+    static func renderHero(to out: URL) {
+        let url = out.appendingPathComponent("chiikawa.gif")
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 48, nil) else { return }
+        CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
+        for frame in 0..<48 {
+            let t = Double(frame) / 24
+            let envelope = pow(sin(.pi * t / 2), 2)
+            let view = Canvas { ctx, _ in
+                var pose = Pose()
+                pose.tilt = sin(t * .pi * 16) * 0.035 * envelope
+                pose.squish = 1 + sin(t * .pi * 8) * 0.025 * envelope
+                let base = CGPoint(x: 120 + sin(t * .pi * 16) * 1.5 * envelope,
+                                   y: 170 - max(0, sin(t * .pi * 4)) * 3 * envelope)
+                FriendArt.draw(ctx, .chiikawa, base: base, size: 72, pose: pose)
+            }.frame(width: 240, height: 200).background(.white)
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 2
+            guard let image = renderer.cgImage else { fatalError("hero frame failed") }
+            CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 24]] as CFDictionary)
+        }
+        precondition(CGImageDestinationFinalize(destination))
     }
 
     static func renderMotion(to out: URL) {

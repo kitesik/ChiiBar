@@ -1,5 +1,9 @@
 # ChiiBar
 
+<p align="center">
+  <img src="docs/chiikawa.gif" width="240" alt="작게 파들거리며 뛰는 치이카와">
+</p>
+
 Claude Code와 Codex를 쓰는 동안, 메뉴 막대 속 친구의 집이 자라는 macOS 팬 앱입니다.
 경험치는 자동으로 쌓이고, 업그레이드 버튼을 누르면 친구가 집을 뚝딱뚝딱 꾸밉니다.
 
