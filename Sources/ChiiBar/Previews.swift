@@ -90,6 +90,9 @@ enum Previews {
         growing.dailyProgress?[.chiikawa]?.earned = 50_400_000
         save("popover_today_goal_complete", popSize, PopoverView(model: AppModel(state: growing, stateURL: nil, fixedNow: now)))
         let collection = fixtureModel(lastTokenAgo: 60)
+        collection.state.houses = [.chiikawa: House(stage: 6)]
+        collection.state.met = [.chiikawa]
+        collection.state.current = .chiikawa
         collection.tab = .friends
         save("popover_friends", popSize, PopoverView(model: collection))
         let full = fixtureModel(lastTokenAgo: 60)
