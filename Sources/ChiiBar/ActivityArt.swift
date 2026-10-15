@@ -139,6 +139,12 @@ enum ActivityArt {
         case .rakko:
             pose.tilt *= 0.5
             pose.squish = 1 + (pose.squish - 1) * 0.5
+        case .anoko:
+            pose.tilt += sin(phase * 1.8) * 0.03
+            if free { pose.squish *= 1 + sin(phase * 3.6) * 0.03 }
+        case .kani:
+            pose.tilt += sin(phase * 2.2) * 0.02
+            if free { pl.base.x += sin(phase * 2.2) * 2 }
         case .shisa:
             pose.tilt += sin(phase * 2.8) * 0.04
             if free { pl.base.y -= max(0, sin(phase * 3.4)) * 3 }

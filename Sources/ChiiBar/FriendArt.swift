@@ -28,6 +28,8 @@ extension FriendID {
         case .kurimanju: Ink.rgb(0xE0A85E)
         case .rakko: Ink.rgb(0xC99B72)
         case .shisa: Ink.rgb(0xF7B84A)
+        case .anoko: Ink.rgb(0xFFFCED)
+        case .kani: Ink.rgb(0xF4B9C6)
         }
     }
 
@@ -41,6 +43,8 @@ extension FriendID {
         case .kurimanju: Ink.rgb(0x8C5A2E)
         case .rakko: Ink.rgb(0xF4E3CD)
         case .shisa: Ink.rgb(0xE07A2C)
+        case .anoko: Ink.rgb(0xDCCFA3)
+        case .kani: Ink.rgb(0xDA6D80)
         }
     }
 
@@ -53,6 +57,8 @@ extension FriendID {
         case .kurimanju: Ink.rgb(0xF6E0C0)
         case .rakko: Ink.rgb(0xEEDCC8)
         case .shisa: Ink.rgb(0xFFE0B8)
+        case .anoko: Ink.rgb(0xF5EFD9)
+        case .kani: Ink.rgb(0xF9E9ED)
         }
     }
 }
@@ -93,6 +99,11 @@ enum FriendArt {
         }
         c.rotate(by: .radians(pose.tilt))
         c.scaleBy(x: 1 + (1 - pose.squish) * 0.6, y: pose.squish)
+        if f == .anoko || f == .kani {
+            c.scaleBy(x: s, y: s)
+            AdditionalFriendSprites.draw(c, friend: f, pose: pose)
+            return
+        }
         let lw = max(1, s * 0.035)
         tail(c, f, s, lw)
         backOfHead(c, f, s, lw)
@@ -109,6 +120,11 @@ enum FriendArt {
         var c = ctx
         let headCenterY = f == .usagi ? rect.maxY - s * 0.48 : rect.midY + s * 0.06
         c.translateBy(x: rect.midX, y: headCenterY + 0.72 * s)
+        if f == .anoko || f == .kani {
+            c.scaleBy(x: s, y: s)
+            AdditionalFriendSprites.draw(c, friend: f, pose: Pose(), faceOnly: true)
+            return
+        }
         let lw = max(1, s * 0.05)
         backOfHead(c, f, s, lw)
         head(c, f, s, lw)
@@ -143,6 +159,7 @@ enum FriendArt {
 
     private static func backOfHead(_ c: GraphicsContext, _ f: FriendID, _ s: CGFloat, _ lw: CGFloat) {
         switch f {
+        case .anoko, .kani: break // Drawn by AdditionalFriendSprites before this fallback.
         case .chiikawa:
             for sx in [-1.0, 1.0] { paint(c, ell(sx * 0.29 * s, -1.06 * s, 0.24 * s, 0.24 * s), f.fur, lw) }
         case .hachiware:

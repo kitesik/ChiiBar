@@ -28,6 +28,10 @@ enum OriginalSprites {
     }
 
     static func draw(_ c: GraphicsContext, friend f: FriendID, pose: Pose, faceOnly: Bool = false) {
+        if f == .anoko || f == .kani {
+            AdditionalFriendSprites.draw(c, friend: f, pose: pose, faceOnly: faceOnly)
+            return
+        }
         let fur = f.fur
         let accent: Color = f == .hachiware ? Ink.rgb(0x96B8D4) : f.accent
         if !faceOnly {
@@ -196,6 +200,6 @@ enum OriginalSprites {
                 try png.write(to: dir.appendingPathComponent(name + ".png"))
             }
         }
-        print("Exported 84 original sprites")
+        print("Exported \(FriendID.allCases.count * 12) original sprites")
     }
 }

@@ -173,6 +173,8 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         #expect(abs(Double(tiers[1]!) / Double(n) - 0.6) < 0.02)
         #expect(abs(Double(tiers[2]!) / Double(n) - 0.3) < 0.02)
         #expect(abs(Double(tiers[3]!) / Double(n) - 0.1) < 0.02)
+        #expect((perFriend[.anoko] ?? 0) > 0)
+        #expect((perFriend[.kani] ?? 0) > 0)
         // uniform within the 1-star tier
         for f in [FriendID.momonga, .kurimanju, .shisa] {
             #expect(abs(Double(perFriend[f]!) / Double(n) - 0.2) < 0.02)
@@ -181,6 +183,18 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         var a = SeededRNG(seed: 7), b = SeededRNG(seed: 7)
         var s1 = GameState(now: now), s2 = GameState(now: now)
         #expect(s1.draw(using: &a) == s2.draw(using: &b))
+    }
+
+    @Test func newFriendsPreserveProgressAcrossSave() throws {
+        var state = owned(.chiikawa, stage: 6)
+        state.houses[.anoko] = House(stage: 3, progress: 123_456)
+        state.houses[.kani] = House(stage: 8, progress: 789_012)
+        state.met = [.chiikawa, .anoko, .kani]
+        state.current = .kani
+        let restored = try JSONDecoder().decode(GameState.self, from: JSONEncoder().encode(state))
+        #expect(restored.houses == state.houses)
+        #expect(restored.current == .kani)
+        #expect(restored.met == state.met)
     }
 
     @Test func duplicateAddsMaterialsWithoutBuilding() {

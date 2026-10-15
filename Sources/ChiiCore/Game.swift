@@ -17,7 +17,7 @@ public enum Tuning {
 // MARK: - Friends
 
 public enum FriendID: String, Codable, CaseIterable, Sendable {
-    case chiikawa, hachiware, usagi, momonga, kurimanju, rakko, shisa
+    case chiikawa, hachiware, usagi, momonga, kurimanju, rakko, shisa, anoko, kani
 
     public var name: String {
         switch self {
@@ -28,13 +28,15 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         case .kurimanju: "쿠리만쥬"
         case .rakko: "랏코"
         case .shisa: "시사"
+        case .anoko: "아노코"
+        case .kani: "카니"
         }
     }
 
     public var rarity: Int {
         switch self {
-        case .chiikawa, .rakko: 3
-        case .hachiware, .usagi: 2
+        case .chiikawa, .rakko, .anoko: 3
+        case .hachiware, .usagi, .kani: 2
         case .momonga, .kurimanju, .shisa: 1
         }
     }
@@ -48,6 +50,8 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         case .kurimanju: ["캬~", "하아~"]
         case .rakko: ["훗.", "음."]
         case .shisa: ["에헤헤~", "사!"]
+        case .anoko: ["와아…", "후후…"]
+        case .kani: ["좋은 책이 있어요", "같이 읽을래요?"]
         }
     }
 

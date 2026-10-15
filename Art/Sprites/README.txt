@@ -7,7 +7,7 @@ respective rights holder. Unofficial fan artwork. Not affiliated with the rights
 
 Recreate: bash Scripts/draw-sprites.sh
 
-Each friend has 12 PNGs, 640 pixels wide with transparency:
+All 9 friends each have 12 PNGs, 640 pixels wide with transparency:
 stand, sleep, happy, munch, blink, cheer, front, munch_front,
 happy_front, ear_left, ear_right, face.
 Whole-body frames are 640 x 760, feet at bottom center.

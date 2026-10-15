@@ -37,8 +37,8 @@ enum Previews {
         for f in FriendID.allCases {
             save("character_\(f.rawValue)", sz, scene(SceneParams(friend: f, stage: 12, activity: .tea, t: t0)))
         }
-        save("character_sheet", CGSize(width: 700, height: 150), CharacterSheet())
-        save("menu_faces", CGSize(width: 210, height: 30), MenuFaceSheet())
+        save("character_sheet", CGSize(width: CGFloat(FriendID.allCases.count) * 100, height: 150), CharacterSheet())
+        save("menu_faces", CGSize(width: CGFloat(FriendID.allCases.count) * 30, height: 30), MenuFaceSheet())
         renderHero(to: out)
         renderMotion(to: out)
         renderConstruction(to: out)
@@ -132,7 +132,7 @@ enum Previews {
         guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 48, nil) else { return }
         CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
         for frame in 0..<48 {
-            let renderer = ImageRenderer(content: MotionSheet(t: Double(frame) / 12).frame(width: 700, height: 170))
+            let renderer = ImageRenderer(content: MotionSheet(t: Double(frame) / 12).frame(width: CGFloat(FriendID.allCases.count) * 100, height: 170))
             renderer.scale = 1
             guard let image = renderer.cgImage else { fatalError("motion frame failed") }
             CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 12]] as CFDictionary)

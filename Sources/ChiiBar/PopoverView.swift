@@ -297,7 +297,7 @@ struct Sweep: View {
 struct FriendsView: View {
     @ObservedObject var model: AppModel
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("친구 뽑기").font(.system(size: 16, weight: .bold))
@@ -318,7 +318,7 @@ struct FriendsView: View {
                     Text("\(model.state.houses.count) / \(FriendID.allCases.count)")
                         .font(.system(size: 12)).foregroundStyle(Theme.soft)
                 }
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
                     ForEach(FriendID.allCases, id: \.self) { f in
                         CollectionCard(model: model, friend: f)
                     }
@@ -349,7 +349,7 @@ struct CollectionCard: View {
                 Text(house.map { $0.isComplete ? "집 완성" : "집 \($0.stage)/12" } ?? "미보유")
                     .font(.system(size: 9)).foregroundStyle(Theme.soft)
             }
-            .frame(maxWidth: .infinity).padding(.vertical, 6)
+            .frame(maxWidth: .infinity).padding(.vertical, 5)
             .background(house == nil ? Ink.rgb(0xECE8EC) : friend.chipTint, in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(model.state.current == friend ? Theme.accent : Ink.rgb(0xD8CCAE), lineWidth: model.state.current == friend ? 2 : 1))
         }
