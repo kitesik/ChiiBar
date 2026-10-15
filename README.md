@@ -7,6 +7,21 @@ Claude Code와 Codex를 쓰는 동안, 메뉴 막대 속 친구의 집이 자라
 
 ## 설치
 
+### Homebrew로 한 줄 설치
+
+[Homebrew](https://brew.sh)가 설치되어 있다면 아래 명령만 실행하세요.
+
+```bash
+brew install --cask kitesik/tap/chiibar
+```
+
+설치 후 응용 프로그램에서 ChiiBar를 실행합니다. 첫 실행이 차단될 때는 아래 안내를 참고하세요.
+업데이트는 `brew update && brew upgrade --cask kitesik/tap/chiibar`로 진행합니다.
+기존에 직접 설치한 앱이 같은 경로에 있으면 먼저 종료한 뒤 앱 파일만 휴지통으로 옮기고 설치하세요.
+게임 저장 폴더를 지우지 않으면 친구와 집 진행 상황은 유지됩니다.
+
+### 직접 다운로드로 설치
+
 macOS 14 Sonoma 이상이 필요합니다. 배포 파일은 Apple Silicon과 Intel Mac 공용입니다.
 
 1. 위 링크에서 `ChiiBar-0.1.0-universal.zip`을 다운로드합니다.
