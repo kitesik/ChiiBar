@@ -28,7 +28,7 @@ brew install --cask kitesik/tap/chiibar
 
 macOS 14 Sonoma 이상이 필요합니다. 배포 파일은 Apple Silicon과 Intel Mac 공용입니다.
 
-1. 위 링크에서 `ChiiBar-0.2.0-universal.zip`을 다운로드합니다.
+1. 위 링크에서 `ChiiBar-0.2.1-universal.zip`을 다운로드합니다.
 2. 압축을 풀고 `ChiiBar.app`을 응용 프로그램 폴더로 옮깁니다.
 3. 앱을 실행하고 화면 상단 메뉴 막대의 작은 캐릭터 아이콘을 누릅니다.
 4. 친구 탭에서 무료 첫 뽑기로 친구를 만나세요.

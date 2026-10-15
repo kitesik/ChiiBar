@@ -79,10 +79,10 @@ final class AppModel: ObservableObject {
             switch e {
             case .piece(let f, let stage) where f == state.current:
                 reveal = (stage, now)
-                say(f.lines.randomElement()!)
+                say(f.dialogue(for: .upgraded))
             case .completed(let f) where f == state.current:
                 endingStart = now
-                say("행복해…")
+                say(f.dialogue(for: .completed))
             default:
                 break
             }
@@ -94,7 +94,7 @@ final class AppModel: ObservableObject {
     func poke() {
         guard let f = state.current else { return }
         pokeStart = now
-        say(f.lines.randomElement()!)
+        say(f.dialogue(for: .poke))
     }
 
     func buildHouse() {
@@ -109,7 +109,7 @@ final class AppModel: ObservableObject {
             ? UpgradeCarryover(friend: f, stage: h.stage, amount: h.progress,
                                startsAt: now.addingTimeInterval(2.4)) : nil
         endingStart = nil
-        say("뚝딱뚝딱!")
+        say(f.dialogue(for: .building))
         save()
         Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(2.4))
@@ -118,8 +118,8 @@ final class AppModel: ObservableObject {
             self.upgradeNotice = (UpgradeCopy.completion[h.stage]!, self.now)
             if events.contains(.completed(f)) {
                 self.endingStart = self.now
-                self.say("행복해…")
-            } else { self.say("다 지었다!") }
+                self.say(f.dialogue(for: .completed))
+            } else { self.say(f.dialogue(for: .upgraded)) }
         }
     }
 
@@ -151,10 +151,10 @@ final class AppModel: ObservableObject {
         tab = .home
         state.select(g.result.friend)
         switch g.result.outcome {
-        case .newFriend: say(g.result.friend.lines.first!)
+        case .newFriend: say(g.result.friend.dialogue(for: .greeting))
         case .gift:
-            say("집 지을 재료를 가져왔어!")
-        case .ticketBack: say(g.result.friend.lines.randomElement()!)
+            say(g.result.friend.dialogue(for: .gift))
+        case .ticketBack: say(g.result.friend.dialogue(for: .greeting))
         }
         save()
     }

@@ -41,20 +41,6 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         }
     }
 
-    public var lines: [String] {
-        switch self {
-        case .chiikawa: ["와…", "흐에…", "에엣!"]
-        case .hachiware: ["괜찮아 괜찮아~", "와아~!", "해볼까!"]
-        case .usagi: ["우라!", "야하!", "프르르르…", "하?"]
-        case .momonga: ["뀨우~", "흥!"]
-        case .kurimanju: ["캬~", "하아~"]
-        case .rakko: ["훗.", "음."]
-        case .shisa: ["에헤헤~", "사!"]
-        case .anoko: ["와아…", "후후…"]
-        case .kani: ["좋은 책이 있어요", "같이 읽을래요?"]
-        }
-    }
-
     public static let starters: [FriendID] = [.chiikawa, .hachiware, .usagi]
 }
 

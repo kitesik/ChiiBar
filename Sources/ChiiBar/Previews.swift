@@ -33,7 +33,7 @@ enum Previews {
                  scene(SceneParams(friend: .hachiware, stage: stage, activity: .tea, t: t0)))
         }
         save("ending", sz, scene(SceneParams(friend: .hachiware, stage: 12, activity: .tea, t: t0,
-                                             endingElapsed: 1.6, bubble: "행복해…")))
+                                             endingElapsed: 1.6, bubble: FriendID.hachiware.dialogue(for: .completed))))
         for f in FriendID.allCases {
             save("character_\(f.rawValue)", sz, scene(SceneParams(friend: f, stage: 12, activity: .tea, t: t0)))
         }
