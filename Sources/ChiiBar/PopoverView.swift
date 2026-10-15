@@ -161,13 +161,19 @@ struct ActivityLabel: View {
 
 struct StageProgress: View {
     @ObservedObject var model: AppModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var carryover: UpgradeCarryover? {
+        guard let event = model.carryover,
+              event.friend == model.state.current, event.stage == house.stage else { return nil }
+        return event
+    }
     var house: House { model.state.currentHouse ?? House() }
     var fraction: Double {
         guard let cost = house.nextCost else { return 1 }
         return min(1, Double(house.progress) / Double(cost))
     }
     var baseline: Double? {
-        guard let f = model.state.current, let record = model.state.progressToday(for: f, at: model.now),
+        guard carryover == nil, let f = model.state.current, let record = model.state.progressToday(for: f, at: model.now),
               record.startStage == house.stage, let cost = house.nextCost else { return nil }
         return min(1, Double(record.startProgress) / Double(cost))
     }
@@ -185,15 +191,30 @@ struct StageProgress: View {
                     UpgradeButton(model: model)
                 }
             }
-            ProgressTrack(fraction: fraction, sweepFrom: model.lastCredit, fixedNow: model.fixedNow, baseline: baseline)
-            HStack {
-                Text(baseline == nil ? "집 \(house.stage)/12단계" : "오늘 첫 확인 \(Int((baseline ?? 0) * 100))% → 지금 \(Int(fraction * 100))%")
-                Spacer()
-                if !house.isComplete { Text("\(Int(fraction * 100))%") }
-            }.font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.actionText)
+            Clock(fixed: model.fixedNow) { date in
+                let displayed = carryover?.displayedFraction(target: fraction, at: date, reduceMotion: reduceMotion) ?? fraction
+                VStack(spacing: 4) {
+                    ProgressTrack(fraction: displayed, sweepFrom: carryover == nil ? model.lastCredit : nil,
+                                  fixedNow: model.fixedNow, baseline: baseline,
+                                  animatesChanges: !reduceMotion && !(carryover?.isAnimating(at: date) ?? false))
+                        .contentShape(Rectangle())
+                        .help(carryover?.explanation ?? "사용한 토큰이 경험치로 쌓여요. 가득 차면 다음 단계로 업그레이드할 수 있어요.")
+                    HStack {
+                        Text(baseline == nil ? "집 \(house.stage)/12단계" : "오늘 첫 확인 \(Int((baseline ?? 0) * 100))% → 지금 \(Int(displayed * 100))%")
+                        Spacer()
+                        if !house.isComplete { Text("\(Int(displayed * 100))%") }
+                    }.font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.actionText)
+                }
+            }
             if let cost = house.nextCost {
-                Text("경험치 \(TokenFormat.short(house.progress)) / \(TokenFormat.short(cost))")
-                    .font(.system(size: 10)).foregroundStyle(Theme.soft)
+                HStack(spacing: 4) {
+                    Text("경험치 \(TokenFormat.short(house.progress)) / \(TokenFormat.short(cost))")
+                    if let carryover {
+                        Image(systemName: "info.circle")
+                            .help(carryover.explanation)
+                            .accessibilityLabel(carryover.explanation)
+                    }
+                }.font(.system(size: 10)).foregroundStyle(Theme.soft)
             }
         }
         .padding(.horizontal, 4)
@@ -257,13 +278,14 @@ struct ProgressTrack: View {
     let sweepFrom: Date?
     let fixedNow: Date?
     var baseline: Double? = nil
+    var animatesChanges = true
     var body: some View {
         GeometryReader { g in
             ZStack(alignment: .leading) {
                 Capsule().fill(Ink.rgb(0xE5EBED))
                 Capsule().fill(LinearGradient(colors: [Ink.rgb(0xB8D8EB), Theme.accent], startPoint: .leading, endPoint: .trailing))
                     .frame(width: max(0, g.size.width * fraction))
-                    .animation(.easeOut(duration: 0.9), value: fraction)
+                    .animation(animatesChanges ? .easeOut(duration: 0.9) : nil, value: fraction)
                 Sweep(from: sweepFrom, fixedNow: fixedNow, width: g.size.width * fraction)
                 if let baseline {
                     Rectangle().fill(Theme.actionText).frame(width: 2, height: 10)

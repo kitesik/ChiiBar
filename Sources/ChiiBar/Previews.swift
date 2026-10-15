@@ -43,6 +43,7 @@ enum Previews {
         renderMotion(to: out)
         renderConstruction(to: out)
         renderDiscovery(to: out)
+        renderCarryover(to: out)
 
         let activities: [(String, Activity, Int)] = [
             ("weeding", .weeding, 3), ("cooking", .cooking, 12), ("sweeping", .sweeping, 12), ("reading", .reading, 12),
@@ -89,6 +90,10 @@ enum Previews {
         save("popover_today_achievement", popSize, PopoverView(model: AppModel(state: growing, stateURL: nil, fixedNow: now)))
         growing.dailyProgress?[.chiikawa]?.earned = 50_400_000
         save("popover_today_goal_complete", popSize, PopoverView(model: AppModel(state: growing, stateURL: nil, fixedNow: now)))
+        for (name, elapsed) in [("start", 0.0), ("middle", 1.0), ("end", 2.0)] {
+            save("carryover_" + name, CGSize(width: 320, height: 110),
+                 StageProgress(model: carryoverModel(elapsed: elapsed)).padding(8).background(Theme.background))
+        }
         let collection = fixtureModel(lastTokenAgo: 60)
         collection.state.houses = [.chiikawa: House(stage: 6)]
         collection.state.met = [.chiikawa]
@@ -101,6 +106,30 @@ enum Previews {
         save("popover_friends_all", popSize, PopoverView(model: full))
         save("popover_first_draw", popSize, PopoverView(model: AppModel(state: GameState(now: now), stateURL: nil, fixedNow: now)))
         print(files.joined(separator: "\n"))
+    }
+
+    static func carryoverModel(elapsed: Double) -> AppModel {
+        let template = fixtureModel(lastTokenAgo: 60)
+        template.state.houses[.hachiware] = House(stage: 7, progress: 11_000_000)
+        let model = AppModel(state: template.state, stateURL: nil, fixedNow: now.addingTimeInterval(elapsed))
+        model.carryover = UpgradeCarryover(friend: .hachiware, stage: 7, amount: 11_000_000,
+                                          startsAt: now.addingTimeInterval(0.6))
+        return model
+    }
+
+    static func renderCarryover(to out: URL) {
+        let url = out.appendingPathComponent("carryover_refill.gif")
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 48, nil) else { return }
+        CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
+        for frame in 0..<48 {
+            let view = StageProgress(model: carryoverModel(elapsed: Double(frame) / 12))
+                .padding(8).frame(width: 320, height: 110).background(Theme.background)
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 2
+            guard let image = renderer.cgImage else { fatalError("carryover frame failed") }
+            CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 12]] as CFDictionary)
+        }
+        precondition(CGImageDestinationFinalize(destination))
     }
 
     /// README mascot, rendered from the same original sprite as the app.

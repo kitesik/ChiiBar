@@ -20,6 +20,7 @@ final class AppModel: ObservableObject {
     @Published var lastCredit: Date?
     @Published var upgradeNotice: (text: String, start: Date)?
     @Published var building = false
+    @Published var carryover: UpgradeCarryover?
 
     /// Previews pin the clock; the live app leaves it nil and follows real time.
     let fixedNow: Date?
@@ -104,6 +105,9 @@ final class AppModel: ObservableObject {
         building = true
         upgradeNotice = nil
         reveal = (h.stage, now)
+        carryover = h.progress > 0 && !h.isComplete
+            ? UpgradeCarryover(friend: f, stage: h.stage, amount: h.progress,
+                               startsAt: now.addingTimeInterval(2.4)) : nil
         endingStart = nil
         say("뚝딱뚝딱!")
         save()
