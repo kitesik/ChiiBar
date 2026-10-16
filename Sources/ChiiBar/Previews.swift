@@ -28,6 +28,18 @@ enum Previews {
         }
         let sz = HouseArt.size
 
+        if ProcessInfo.processInfo.environment["CHIIBAR_LAYOUT_ONLY"] == "1" {
+            for stage in 1...13 {
+                save("stage_\(stage)", sz, scene(SceneParams(friend: .hachiware, stage: stage, activity: .tea, t: t0)))
+            }
+            save("menu-faces", CGSize(width: 270, height: 40), HStack(spacing: 8) {
+                ForEach(FriendID.allCases, id: \.self) { friend in
+                    if let icon = SpriteArt.menuImage(for: friend) { Image(nsImage: icon) }
+                }
+            }.background(Color.gray.opacity(0.15)))
+            return
+        }
+
         if ProcessInfo.processInfo.environment["CHIIBAR_NUMBER_SHEET"] == "1" {
             save("number-stamps", CGSize(width: 720, height: 720), VStack(spacing: 0) {
                 ForEach(0..<6) { row in

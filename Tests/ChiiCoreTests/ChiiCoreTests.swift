@@ -225,7 +225,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         }
         var s = owned(.usagi)
         s.observeProgress(at: now)
-        let events = s.credit([ev(HousePlan.totalCost + 123)])
+        let events = s.credit([ev(1_000_000 + (HousePlan.totalCost + 123 - 400_000) * 100)])
         #expect(s.currentHouse?.stage == 1)
         #expect(!events.contains(.completed(.usagi)))
         for stage in 2...13 {
@@ -257,7 +257,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
 
     @Test func tokensAfterCompletionOnlyEarnTickets() {
         var s = owned(.rakko, stage: 13)
-        let events = s.credit([ev(Tuning.ticketCost * 2 + 5)])
+        let events = s.credit([ev(61_000_500)])
         #expect(s.currentHouse == House(stage: 13, progress: 0))
         #expect(s.tickets == 3)
         #expect(s.ticketProgress == 5)
@@ -267,7 +267,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
     @Test func ticketAccrualAndCreditFrom() {
         var s = GameState(now: now)
         #expect(s.tickets == 1)
-        s.credit([ev(Tuning.ticketCost - 1), ev(1_000_000_000, at: now.addingTimeInterval(-86_400 * 2))])
+        s.credit([ev(10_999_999), ev(1_000_000_000, at: now.addingTimeInterval(-86_400 * 2))])
         #expect(s.tickets == 1)
         s.credit([ev(1)])
         #expect(s.tickets == 2)
@@ -359,16 +359,47 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         #expect(try Store.loadOrRecover(url, now: now) == state)
     }
 
+    @Test func dailyExperienceIsBatchIndependentAndResetsTomorrow() {
+        var one = owned(.chiikawa), split = one
+        one.credit([ev(17_000_000)])
+        for _ in 0..<170 { split.credit([ev(100_000)]) }
+        #expect(one == split)
+        #expect(one.currentHouse?.progress == 560_000)
+        #expect(one.tickets == 2)
+        #expect(one.ticketProgress == 60_000)
+        let tomorrow = now.addingTimeInterval(86_400)
+        split.credit([ev(250_000, at: tomorrow)])
+        #expect(split.currentHouse?.progress == 810_000)
+        #expect(split.today(tomorrow) == 250_000)
+    }
+
+    @Test func economyV2KeepsOwnedRewardsAndMigratesTicketFraction() throws {
+        var old = owned(.chiikawa, stage: 8)
+        old.economyVersion = 2
+        old.tickets = 100
+        old.ticketProgress = 75_000
+        old.houses[.chiikawa]?.progress = 2_900_000
+        let url = tempDir().appendingPathComponent("state.json")
+        try Store.save(old, to: url)
+        let updated = try Store.loadOrRecover(url, now: now)
+        #expect(updated.tickets == 100)
+        #expect(updated.ticketProgress == 250_000)
+        #expect(updated.houses == old.houses)
+        #expect(updated.scan == old.scan)
+        try Store.save(updated, to: url)
+        #expect(try Store.loadOrRecover(url, now: now) == updated)
+    }
+
     @Test func nonDeveloperPacingAndDuplicateGift() {
         var s = owned(.hachiware)
         s.tickets = 0
-        s.credit([ev(149_999)])
+        s.credit([ev(10_999_999)])
         #expect(s.tickets == 0)
         s.credit([ev(1)])
         #expect(s.tickets == 1)
         #expect(s.ticketProgress == 0)
         #expect(s.currentHouse?.stage == 1)
-        #expect(s.currentHouse?.progress == 150_000)
+        #expect(s.currentHouse?.progress == 500_000)
         #expect(HousePlan.cost(ofStage: 2) == 20_000)
         #expect(HousePlan.totalCost == 11_540_000)
         #expect(Tuning.duplicateGift(forStage: 2) == 2_000)
@@ -387,11 +418,11 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         var migrated = try Store.loadOrRecover(url, now: now)
         #expect(migrated.currentHouse?.stage == 9)
         #expect(migrated.currentHouse?.progress == 1_950_000)
-        #expect(migrated.ticketProgress == 75_000)
+        #expect(migrated.ticketProgress == 250_000)
         #expect(migrated.tickets == 3)
         #expect(migrated.scan == s.scan)
         #expect(migrated.dayTotals == s.dayTotals)
-        let backups = try FileManager.default.contentsOfDirectory(at: url.deletingLastPathComponent(), includingPropertiesForKeys: nil).filter { $0.lastPathComponent.hasPrefix("state.before-economy-v2-") }
+        let backups = try FileManager.default.contentsOfDirectory(at: url.deletingLastPathComponent(), includingPropertiesForKeys: nil).filter { $0.lastPathComponent.hasPrefix("state.before-economy-v3-") }
         #expect(backups.count == 1)
         #expect(try Data(contentsOf: backups[0]) == original)
         try Store.save(migrated, to: url)
@@ -410,7 +441,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         s.build(at: later)
         let record = s.progressToday(for: .hachiware, at: later)!
         #expect(record.upgrades == 2)
-        #expect(record.earned == 3_500_000)
+        #expect(record.earned == 425_000)
         #expect(record.startProgress == 500_000)
         #expect(record.startStage == 1)
         #expect(record.lastUpgradeAt == later)
@@ -452,7 +483,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         s = try #require(Store.load(url))
         #expect(s.currentHouse?.stage == 12)
         #expect(s.currentHouse?.isComplete == false)
-        s.credit([ev(HousePlan.cost(ofStage: 13))])
+        s.credit([ev(1_000_000 + (HousePlan.cost(ofStage: 13) - 400_000) * 100)])
         #expect(s.currentHouse?.stage == 12)
         s.build(at: now)
         #expect(s.currentHouse == House(stage: 13))

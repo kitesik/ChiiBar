@@ -3,16 +3,22 @@ import Foundation
 // MARK: - Tuning (initial non-developer work pacing; validate with real cohorts)
 
 public enum Tuning {
-    public static let economyVersion = 2
+    public static let economyVersion = 3
     public static let firstPieceCost: Int64 = 20_000
     public static let pieceCosts: [Int64] = [
         20_000, 40_000, 80_000, 150_000, 250_000, 400_000,
         600_000, 900_000, 1_300_000, 1_800_000, 2_500_000, 3_500_000
     ]
-    public static let ticketCost: Int64 = 150_000
+    public static let ticketCost: Int64 = 500_000
     public static let dailyTarget: Int64 = 300_000
     public static func duplicateGift(forStage stage: Int) -> Int64 {
         min(150_000, HousePlan.cost(ofStage: stage) / 10)
+    }
+    /// Daily diminishing returns: ordinary work is unchanged, marathon sessions stay rewarding.
+    public static func experience(forDailyTokens tokens: Int64) -> Int64 {
+        let n = max(0, tokens)
+        return min(n, 250_000) + min(max(0, n - 250_000), 750_000) / 5
+            + max(0, n - 1_000_000) / 100
     }
     static let legacyPieceCosts: [Int64] = [
         1_500_000, 2_500_000, 4_000_000, 6_500_000, 10_000_000, 15_000_000,
@@ -199,18 +205,22 @@ public struct GameState: Codable, Sendable, Equatable {
     public mutating func credit(_ events: [TokenEvent]) -> [GameEvent] {
         var out: [GameEvent] = []
         for e in events where e.date >= creditFrom && e.tokens > 0 {
-            dayTotals[DayKey.of(e.date), default: 0] += e.tokens
+            let day = DayKey.of(e.date)
+            let previous = dayTotals[day, default: 0]
+            let total = previous + e.tokens
+            let experience = Tuning.experience(forDailyTokens: total) - Tuning.experience(forDailyTokens: previous)
+            dayTotals[day] = total
             if lastTokenAt.map({ e.date > $0 }) ?? true { lastTokenAt = e.date }
-            ticketProgress += e.tokens
+            ticketProgress += experience
             while ticketProgress >= Tuning.ticketCost {
                 ticketProgress -= Tuning.ticketCost
                 tickets += 1
                 out.append(.ticket)
             }
             guard let id = current, var h = houses[id], !h.isComplete else { continue }
-            h.progress += e.tokens
+            h.progress += experience
             if var record = dailyProgress?[id], record.day == DayKey.of(e.date) {
-                record.earned += e.tokens
+                record.earned += experience
                 dailyProgress?[id] = record
             }
             houses[id] = h
@@ -277,7 +287,7 @@ public struct GameState: Codable, Sendable, Equatable {
         if houses[id] != nil { current = id }
     }
 
-    public func today(_ now: Date) -> Int64 { dayTotals[DayKey.of(now)] ?? 0 }
+    public func today(_ now: Date) -> Int64 { Tuning.experience(forDailyTokens: dayTotals[DayKey.of(now)] ?? 0) }
 }
 
 /// SplitMix64: small seedable generator for tests and fixtures.
@@ -375,9 +385,9 @@ public enum Store {
     }
 
     private static func isValid(_ s: GameState) -> Bool {
-        (s.economyVersion == nil || s.economyVersion == Tuning.economyVersion)
+        (s.economyVersion == nil || s.economyVersion == 2 || s.economyVersion == Tuning.economyVersion)
         && s.tickets >= 0 && s.ticketProgress >= 0
-        && s.ticketProgress < (s.economyVersion == nil ? Tuning.legacyTicketCost : Tuning.ticketCost)
+        && s.ticketProgress < (s.economyVersion == nil ? Tuning.legacyTicketCost : s.economyVersion == 2 ? 150_000 : Tuning.ticketCost)
         && s.dayTotals.values.allSatisfy { $0 >= 0 }
         && Set(s.met).count == s.met.count && Set(s.met) == Set(s.houses.keys)
         && (s.current.map { s.houses[$0] != nil } ?? s.houses.isEmpty)
@@ -394,8 +404,8 @@ public enum Store {
         let original = try Data(contentsOf: url)
         if let state = load(url) {
             let old = try JSONDecoder().decode(GameState.self, from: original)
-            if old.economyVersion == nil {
-                let backup = url.deletingLastPathComponent().appendingPathComponent("state.before-economy-v2-\(UUID().uuidString).json")
+            if old.economyVersion != Tuning.economyVersion {
+                let backup = url.deletingLastPathComponent().appendingPathComponent("state.before-economy-v3-\(UUID().uuidString).json")
                 try original.write(to: backup, options: .atomic)
             }
             return state
@@ -407,7 +417,13 @@ public enum Store {
 
     /// Preserve fractional progress AND any surplus, without auto-building or minting tickets.
     private static func migrate(_ original: GameState) -> GameState {
-        guard original.economyVersion == nil else { return original }
+        guard original.economyVersion != Tuning.economyVersion else { return original }
+        if original.economyVersion == 2 {
+            var updated = original
+            updated.ticketProgress = original.ticketProgress * Tuning.ticketCost / 150_000
+            updated.economyVersion = Tuning.economyVersion
+            return updated
+        }
         var state = original
         func scaled(_ value: Int64, old: Int64, new: Int64) -> Int64 {
             // All new costs are lower. Quotient/remainder avoids overflow and float rounding.

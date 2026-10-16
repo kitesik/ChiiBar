@@ -46,9 +46,14 @@ enum DioramaArt {
     static func hitCenter(_ p: SceneParams) -> CGPoint {
         guard images[p.stage] != nil else { return CGPoint(x: 60, y: 157) }
         let feet = position(p)
-        return CGPoint(x: feet.x, y: feet.y - 22)
+        return CGPoint(x: feet.x * 0.74, y: 190 * 0.26 + feet.y * 0.74 - 22)
     }
-    static func draw(_ c: GraphicsContext, _ p: SceneParams) -> Bool {
+    static func draw(_ canvas: GraphicsContext, _ p: SceneParams) -> Bool {
+        canvas.fill(Path(CGRect(x: 0, y: 0, width: 320, height: 210)), with: .color(Ink.rgb(0xFFF9EF)))
+        var c = canvas
+        // Reserve a separate right-hand lane, including construction overshoot.
+        c.translateBy(x: 0, y: 190 * 0.26)
+        c.scaleBy(x: 0.74, y: 0.74)
         guard let image = images[p.stage] else { return false }
         c.fill(Path(CGRect(x: 0, y: 0, width: 320, height: 210)), with: .color(Ink.rgb(0xFFF9EF)))
         func imageFrame(_ stage: Int) -> CGRect {
@@ -65,17 +70,6 @@ enum DioramaArt {
             assemble(c, image: image, frame: frame, elapsed: reveal.elapsed)
         } else {
             c.draw(Image(decorative: image, scale: 1), in: frame)
-        }
-        // A mystery silhouette, without a separate card or progress fill.
-        if p.stage < 13, let next = images[p.stage + 1] {
-            let inset = CGRect(x: 249, y: 20, width: 66, height: 44)
-            c.draw(Text("다음 집").font(.system(size: 9, weight: .bold)).foregroundColor(Ink.rgb(0x736B72)),
-                   at: CGPoint(x: inset.midX, y: 9))
-            var silhouette = c.resolve(Image(decorative: next, scale: 1))
-            silhouette.shading = .color(.black)
-            c.draw(silhouette, in: inset)
-            c.draw(Text("?").font(.system(size: 22, weight: .heavy, design: .rounded)).foregroundColor(.white),
-                   at: CGPoint(x: inset.midX, y: inset.midY))
         }
         let motion = HomeWander.position(at: p.t, friend: p.friend, reduced: p.reduceMotion)
         let feet = position(p)
@@ -99,10 +93,10 @@ enum DioramaArt {
         c.fill(FriendArt.ell(feet.x, feet.y, 21, 3), with: .color(.black.opacity(0.07)))
         let friendSize: CGFloat = p.friend == .rakko || p.friend == .shisa ? 44 :
             (p.friend == .momonga || p.friend == .anoko ? 39 : 35)
-        FriendArt.draw(c, p.friend, base: CGPoint(x: feet.x, y: feet.y - bounce), size: friendSize, pose: pose)
+        FriendArt.draw(c, p.friend, base: CGPoint(x: feet.x, y: feet.y - bounce), size: friendSize / 0.74, pose: pose)
         if !p.reduceMotion {
-            if let e = p.pokeElapsed { Effects.hearts(c, from: CGPoint(x: feet.x, y: feet.y - 46), elapsed: e) }
-            if asleep { Effects.zzz(c, from: CGPoint(x: feet.x + 15, y: feet.y - 46), t: p.t) }
+            if let e = p.pokeElapsed { Effects.hearts(c, from: CGPoint(x: feet.x, y: feet.y - 46 / 0.74), elapsed: e) }
+            if asleep { Effects.zzz(c, from: CGPoint(x: feet.x + 15, y: feet.y - 46 / 0.74), t: p.t) }
             if let e = p.endingElapsed { Effects.confetti(c, elapsed: e) }
             if let e = completion, e >= 0 {
                 if p.endingElapsed == nil { Effects.confetti(c, elapsed: e) }
@@ -110,9 +104,20 @@ enum DioramaArt {
             }
         }
         c.fill(Path(roundedRect: CGRect(x: 65, y: 190, width: 190, height: 19), cornerRadius: 8), with: .color(Ink.rgb(0xFFF9EF).opacity(0.95)))
-        c.draw(Text(HousePlan.name(of: p.stage)).font(.system(size: 10, weight: .bold)).foregroundColor(HousingJourney.ink), at: CGPoint(x: 160, y: 200))
-        if p.bubble == nil && expression == .cry { Effects.bubble(c, text: "우웅…", near: CGPoint(x: feet.x, y: feet.y - 50)) }
-        if let b = p.bubble { Effects.bubble(c, text: b, near: CGPoint(x: feet.x, y: feet.y - 50)) }
+        c.draw(Text(HousePlan.name(of: p.stage)).font(.system(size: 10 / 0.74, weight: .bold)).foregroundColor(HousingJourney.ink), at: CGPoint(x: 160, y: 200))
+        if p.bubble == nil && expression == .cry { Effects.bubble(c, text: "우웅…", near: CGPoint(x: feet.x, y: feet.y - 50 / 0.74)) }
+        if let b = p.bubble { Effects.bubble(c, text: b, near: CGPoint(x: feet.x, y: feet.y - 50 / 0.74)) }
+        // A mystery silhouette, without a separate card or progress fill.
+        if p.stage < 13, let next = images[p.stage + 1] {
+            let inset = CGRect(x: 258, y: 20, width: 58, height: 39)
+            canvas.draw(Text("다음 집").font(.system(size: 9, weight: .bold)).foregroundColor(Ink.rgb(0x736B72)),
+                   at: CGPoint(x: inset.midX, y: 9))
+            var silhouette = canvas.resolve(Image(decorative: next, scale: 1))
+            silhouette.shading = .color(.black)
+            canvas.draw(silhouette, in: inset)
+            canvas.draw(Text("?").font(.system(size: 22, weight: .heavy, design: .rounded)).foregroundColor(.white),
+                   at: CGPoint(x: inset.midX, y: inset.midY))
+        }
         return true
     }
     private static func assemble(_ c: GraphicsContext, image: CGImage, frame: CGRect, elapsed: Double) {

@@ -34,9 +34,9 @@ enum SpriteArt {
     /// Draw the bundled pixels directly. A menu icon must not depend on SwiftUI
     /// rendering a Canvas before its view has ever joined a window hierarchy.
     static func menuImage(for friend: FriendID) -> NSImage? {
-        guard let cg = images[friend.rawValue] else { return nil }
+        guard let cg = portrait(for: friend) else { return nil }
         let source = NSImage(cgImage: cg, size: CGSize(width: cg.width, height: cg.height))
-        let icon = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { bounds in
+        let icon = NSImage(size: NSSize(width: 22, height: 20), flipped: false) { bounds in
             let ratio = min(bounds.width / CGFloat(cg.width), bounds.height / CGFloat(cg.height))
             let size = CGSize(width: CGFloat(cg.width) * ratio, height: CGFloat(cg.height) * ratio)
             source.draw(in: CGRect(x: bounds.midX - size.width / 2, y: bounds.midY - size.height / 2,
@@ -45,6 +45,29 @@ enum SpriteArt {
         }
         icon.isTemplate = false
         return icon
+    }
+
+    /// Head-focused crop from the existing expression; no new facial features.
+    static func portrait(for friend: FriendID) -> CGImage? {
+        guard let image = images[friend.rawValue] else { return nil }
+        let crop: CGRect
+        switch friend {
+        case .usagi: crop = CGRect(x: 0, y: 0.18, width: 1, height: 0.59)
+        case .anoko: crop = CGRect(x: 0, y: 0, width: 0.84, height: 0.54)
+        case .momonga: crop = CGRect(x: 0, y: 0, width: 0.76, height: 0.72)
+        case .rakko: crop = CGRect(x: 0.09, y: 0, width: 0.82, height: 0.62)
+        default: crop = CGRect(x: 0, y: 0, width: 1, height: 0.72)
+        }
+        return image.cropping(to: CGRect(x: CGFloat(image.width) * crop.minX, y: CGFloat(image.height) * crop.minY,
+            width: CGFloat(image.width) * crop.width, height: CGFloat(image.height) * crop.height))
+    }
+
+    static func drawPortrait(_ ctx: GraphicsContext, _ friend: FriendID, in rect: CGRect) {
+        guard let image = portrait(for: friend) else { return }
+        let scale = min(rect.width / CGFloat(image.width), rect.height / CGFloat(image.height))
+        let size = CGSize(width: CGFloat(image.width) * scale, height: CGFloat(image.height) * scale)
+        ctx.draw(Image(decorative: image, scale: 1), in: CGRect(x: rect.midX - size.width / 2,
+            y: rect.midY - size.height / 2, width: size.width, height: size.height))
     }
 
     /// Reinforce dark ink consistently, including facial details, once at load.

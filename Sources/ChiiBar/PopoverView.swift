@@ -471,7 +471,7 @@ struct FriendsView: View {
                     .font(.system(size: 10, weight: .regular))
                     .fixedSize(horizontal: false, vertical: true)
                     ProgressTrack(fraction: Double(model.state.ticketProgress) / Double(Tuning.ticketCost), sweepFrom: model.lastCredit, fixedNow: model.fixedNow)
-                    Text("다음 뽑기권 \(TokenFormat.short(model.state.ticketProgress)) / \(TokenFormat.short(Tuning.ticketCost)) 토큰")
+                    Text("다음 뽑기권 \(TokenFormat.short(model.state.ticketProgress)) / \(TokenFormat.short(Tuning.ticketCost)) 경험치")
                         .font(.system(size: 10)).foregroundStyle(Theme.soft)
                 }
                 .padding(12).background(.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 14))
