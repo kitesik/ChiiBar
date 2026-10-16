@@ -10,21 +10,41 @@ struct IllustratedNumber: View {
         let images = NumberArtwork.images(for: max(0, count))
         Canvas { context, size in
             guard !images.isEmpty else { return }
-            let heights = images.map { CGFloat($0.height) }
-            let naturalWidths = images.enumerated().map { CGFloat($0.element.width) / heights[$0.offset] }
+            let naturalWidths = images.map { image -> CGFloat in
+                guard let image else { return 0.18 }
+                return CGFloat(image.width) / CGFloat(image.height)
+            }
             let gap: CGFloat = images.count > 1 ? 0.06 : 0
             let total = naturalWidths.reduce(0, +) + gap * CGFloat(images.count - 1)
             let height = min(size.height, size.width / total)
             var x = (size.width - total * height) / 2
             for (index, image) in images.enumerated() {
                 let width = naturalWidths[index] * height
-                context.draw(Image(decorative: image, scale: 1),
-                             in: CGRect(x: x, y: (size.height - height) / 2, width: width, height: height))
+                if let image {
+                    context.draw(Image(decorative: image, scale: 1),
+                        in: CGRect(x: x, y: (size.height - height) / 2, width: width, height: height))
+                } else {
+                    let y = (size.height - height) / 2
+                    var comma = Path()
+                    comma.move(to: CGPoint(x: x + width * 0.25, y: y + height * 0.71))
+                    comma.addCurve(to: CGPoint(x: x + width * 0.8, y: y + height * 0.91),
+                        control1: CGPoint(x: x + width, y: y + height * 0.65),
+                        control2: CGPoint(x: x + width * 1.1, y: y + height * 0.81))
+                    comma.addQuadCurve(to: CGPoint(x: x + width * 0.15, y: y + height * 0.99),
+                        control: CGPoint(x: x + width * 0.5, y: y + height * 1.02))
+                    comma.addLine(to: CGPoint(x: x + width * 0.4, y: y + height * 0.84))
+                    comma.addQuadCurve(to: CGPoint(x: x + width * 0.25, y: y + height * 0.71),
+                        control: CGPoint(x: x - width * 0.1, y: y + height * 0.84))
+                    comma.closeSubpath()
+                    context.fill(comma, with: .color(Ink.rgb(0xFFE7A0)))
+                    context.stroke(comma, with: .color(Ink.rgb(0x8B573E)),
+                        style: StrokeStyle(lineWidth: max(0.65, height * 0.025), lineJoin: .round))
+                }
                 x += width + gap * height
             }
         }
-        .frame(width: width ?? (count < 10 ? 38 : 60), height: height)
-        .accessibilityLabel("\(count)")
+        .frame(width: width ?? (count < 10 ? 38 : count < 1000 ? 60 : 80), height: height)
+        .accessibilityLabel(count.formatted())
     }
 }
 
@@ -38,10 +58,12 @@ private enum NumberArtwork {
         return (Bundle.main.resourceURL ?? Bundle.main.bundleURL).appendingPathComponent("StampNumbers")
     }()
 
-    static func images(for count: Int) -> [CGImage] {
+    static func images(for count: Int) -> [CGImage?] {
         if count <= 30, let image = image(count) { return [image] }
-        var result: [CGImage] = []
-        for digit in String(count) {
+        var result: [CGImage?] = []
+        let digits = Array(String(count))
+        for (index, digit) in digits.enumerated() {
+            if index > 0 && (digits.count - index).isMultiple(of: 3) { result.append(nil) }
             if let value = digit.wholeNumberValue, let artwork = image(value) { result.append(artwork) }
         }
         return result
