@@ -211,7 +211,7 @@ struct StageProgress: View {
     }
     var label: String {
         if model.building { return "\(HousePlan.pieceNames[house.stage - 1]) 업그레이드 중" }
-        return house.isComplete ? "펜트하우스 완성 13/13"
+        return house.isComplete ? "펜트하우스 완성"
             : "다음 집: \(HousePlan.pieceNames[house.stage])"
     }
     private func guidance(_ text: String, icon: String) -> some View {
@@ -285,7 +285,7 @@ struct StageProgress: View {
                         .contentShape(Rectangle())
                         .help(carryover?.explanation ?? "사용한 토큰이 경험치로 쌓여요. 가득 차면 업그레이드 버튼을 눌러 이사할 수 있어요.")
                     HStack {
-                        Text(baseline == nil ? "\(HousePlan.name(of: house.stage)) · \(house.stage)/13" : "오늘 첫 확인 \(Int((baseline ?? 0) * 100))% → 지금 \(Int(displayed * 100))%")
+                        Text(baseline == nil ? "\(HousePlan.name(of: house.stage))" : "오늘 첫 확인 \(Int((baseline ?? 0) * 100))% → 지금 \(Int(displayed * 100))%")
                         Spacer()
                         if !house.isComplete {
                             Text("\(Int(displayed * 100))%")
@@ -528,8 +528,10 @@ struct CollectionCard: View {
                     }
                 }.frame(height: 50)
                 Text(friend.name).font(.system(size: 12, weight: .bold))
-                Text(house.map { $0.isComplete ? "집 완성" : "집 \($0.stage)/13" } ?? "미보유")
+                Text(house.map { HousePlan.name(of: $0.stage) } ?? "미보유")
                     .font(.system(size: 9)).foregroundStyle(Theme.soft)
+                    .lineLimit(2).multilineTextAlignment(.center)
+                    .frame(height: 24)
             }
             .frame(maxWidth: .infinity).padding(.vertical, 5)
             .background(house == nil ? Ink.rgb(0xECE8EC) : friend.chipTint, in: RoundedRectangle(cornerRadius: 12))

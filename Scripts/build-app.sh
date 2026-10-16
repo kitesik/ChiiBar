@@ -41,8 +41,8 @@ cat > "$app/Contents/Info.plist" <<PLIST
     <key>CFBundleName</key><string>신분상승 토큰 치이카와</string>
     <key>CFBundleDisplayName</key><string>신분상승 토큰 치이카와</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.4.4</string>
-    <key>CFBundleVersion</key><string>32</string>
+    <key>CFBundleShortVersionString</key><string>0.4.5</string>
+    <key>CFBundleVersion</key><string>33</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>
