@@ -137,7 +137,7 @@ struct HouseSceneView: View {
                 }
             }
         }
-        .frame(width: 320, height: 210)
+        .frame(width: HouseArt.size.width, height: HouseArt.size.height)
         .overlay(alignment: .topLeading) {
             Clock(fixed: model.fixedNow) { date in
                 if let notice = model.upgradeNotice,
@@ -171,7 +171,7 @@ struct HouseSceneView: View {
             guard var params = model.sceneParams(at: model.now) else { return }
             params.reduceMotion = reduceMotion
             let center = DioramaArt.hitCenter(params)
-            if hypot(loc.x - center.x, loc.y - center.y) < 42 { model.poke() }
+            if hypot(loc.x - center.x, loc.y - center.y) < 42 * 1.3 { model.poke() }
         }
     }
 }

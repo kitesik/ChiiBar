@@ -4,6 +4,8 @@ import SwiftUI
 
 /// Sparse cartoon rooms. Keep the centre clear for the separately animated friend.
 enum DioramaArt {
+    static let sceneScale: CGFloat = 0.74 * 1.3
+    static let sceneOrigin = CGPoint(x: 160 * (1 - sceneScale), y: 53)
     private static let images: [Int: CGImage] = {
         let root: URL
         if let sprites = ProcessInfo.processInfo.environment["CHIIBAR_SPRITES"] {
@@ -46,15 +48,15 @@ enum DioramaArt {
     static func hitCenter(_ p: SceneParams) -> CGPoint {
         guard images[p.stage] != nil else { return CGPoint(x: 60, y: 157) }
         let feet = position(p)
-        return CGPoint(x: 41.6 + feet.x * 0.74, y: 53 + feet.y * 0.74 - 22)
+        return CGPoint(x: sceneOrigin.x + feet.x * sceneScale, y: sceneOrigin.y + feet.y * sceneScale - 22 * 1.3)
     }
     static func draw(_ canvas: GraphicsContext, _ p: SceneParams) -> Bool {
-        canvas.fill(Path(CGRect(x: 0, y: 0, width: 320, height: 210)), with: .color(Ink.rgb(0xFFF9EF)))
+        canvas.fill(Path(CGRect(x: 0, y: 0, width: 320, height: HouseArt.size.height)), with: .color(Ink.rgb(0xFFF9EF)))
         WeatherArt.draw(canvas, moment: p.weather, time: p.t, reduced: p.reduceMotion)
         var c = canvas
         // Keep the house centred below the separate next-house header.
-        c.translateBy(x: 41.6, y: 53)
-        c.scaleBy(x: 0.74, y: 0.74)
+        c.translateBy(x: sceneOrigin.x, y: sceneOrigin.y)
+        c.scaleBy(x: sceneScale, y: sceneScale)
         guard let image = images[p.stage] else { return false }
         func imageFrame(_ stage: Int) -> CGRect {
             let scale = roomScale(stage)
@@ -128,7 +130,7 @@ enum DioramaArt {
             WeatherArt.draw(canvas, moment: weather, time: p.t, reduced: p.reduceMotion, foreground: true)
         }
         c.fill(Path(roundedRect: CGRect(x: 65, y: 190, width: 190, height: 19), cornerRadius: 8), with: .color(Ink.rgb(0xFFF9EF).opacity(0.95)))
-        c.draw(Text(HousePlan.name(of: p.stage)).font(.system(size: 10 / 0.74, weight: .bold)).foregroundColor(HousingJourney.ink), at: CGPoint(x: 160, y: 200))
+        c.draw(Text(HousePlan.name(of: p.stage)).font(.system(size: 10 / sceneScale, weight: .bold)).foregroundColor(HousingJourney.ink), at: CGPoint(x: 160, y: 200))
         if p.bubble == nil && expression == .cry { Effects.bubble(c, text: "우웅…", near: CGPoint(x: feet.x, y: feet.y - 50 / 0.74)) }
         if let b = p.bubble { Effects.bubble(c, text: b, near: CGPoint(x: feet.x, y: feet.y - 50 / 0.74)) }
         // A mystery silhouette, without a separate card or progress fill.

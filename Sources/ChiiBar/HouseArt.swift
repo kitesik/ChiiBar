@@ -26,7 +26,7 @@ struct SceneParams {
 
 /// Doll-house cross-section drawn in a 320 x 210 space, scaled to fit.
 enum HouseArt {
-    static let size = CGSize(width: 320, height: 210)
+    static let size = CGSize(width: 320, height: 260)
     typealias C = GraphicsContext
     static let ell = FriendArt.ell
     static let lw: CGFloat = 1.3
