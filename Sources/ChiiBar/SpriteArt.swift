@@ -26,7 +26,7 @@ enum SpriteArt {
                   let cg = original.cgImage(forProposedRect: nil, context: nil, hints: nil),
                   let trimmed = cg.cropping(to: CGRect(x: entry.crop[0], y: entry.crop[1],
                     width: entry.crop[2] - entry.crop[0], height: entry.crop[3] - entry.crop[1])) else { continue }
-            result[entry.id] = strengthenInk(trimmed)
+            result[entry.id] = strengthenInk(trimmed, character: entry.id)
         }
         return result
     }()
@@ -49,7 +49,7 @@ enum SpriteArt {
 
     /// Reinforce dark ink consistently, including facial details, once at load.
     /// Keep the original sprite files and expression geometry unchanged.
-    private static func strengthenInk(_ image: CGImage) -> CGImage {
+    private static func strengthenInk(_ image: CGImage, character: String) -> CGImage {
         let w = image.width, h = image.height, count = w * h
         var pixels = [UInt8](repeating: 0, count: count * 4)
         let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -103,7 +103,14 @@ enum SpriteArt {
                     }
                 }
             }
-            let radius = max(1, Int((Double(h) * 0.005).rounded()))
+            let inkRatio: Double
+            switch character {
+            case "rakko": inkRatio = 0.0065
+            case "shisa": inkRatio = 0.006
+            case "momonga", "anoko": inkRatio = 0.0055
+            default: inkRatio = 0.005
+            }
+            let radius = max(1, Int((Double(h) * inkRatio).rounded()))
             var horizontal = mask
             for y in 0..<h {
                 for x in 0..<w {

@@ -3,7 +3,7 @@
 Claude Code와 Codex를 쓰는 동안, 치이카와 친구가 토큰을 먹고 비박부터 초고층 빌딩 펜트하우스까지 집을 지어 가는 macOS 팬 앱입니다.
 토큰이 쌓여 게이지가 가득 차면 업그레이드 버튼을 눌러 한 단계씩 이사합니다. 남은 경험치는 새 집에서 이어 채워집니다.
 
-**v0.4.0 — 문서·기획·리서치 작업으로도 키우기 쉽게 성장 비용을 조정했습니다.**
+**v0.4.1 — 더 잘 보이는 친구들, 문서·기획·리서치로도 키우기 쉬운 성장 비용.**
 별도 가입이나 API 키 없이, Mac에 남는 Codex·Claude Code 사용 기록으로 자랍니다. 앱 자체는 무료이며 AI 서비스 이용료는 별도입니다.
 
 **[최신 버전 다운로드](https://github.com/kitesik/ChiiBar/releases/latest)**
@@ -27,7 +27,7 @@ brew install --cask kitesik/tap/chiibar
 
 macOS 14 Sonoma 이상이 필요합니다. 배포 파일은 Apple Silicon과 Intel Mac 공용입니다.
 
-1. 위 링크에서 `ChiiBar-0.4.0-universal.zip`을 다운로드합니다.
+1. 위 링크에서 `ChiiBar-0.4.1-universal.zip`을 다운로드합니다.
 2. 압축을 풀고 `ChiiBar.app`을 응용 프로그램 폴더로 옮깁니다.
 3. 앱을 실행하고 화면 상단 메뉴 막대의 작은 캐릭터 아이콘을 누릅니다.
 4. 첫 화면에서 **첫 친구 뽑기**를 누르세요. 무료 뽑기권 1장으로 전체 9명 중 한 친구를 만납니다.

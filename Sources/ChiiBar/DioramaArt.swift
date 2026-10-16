@@ -97,7 +97,9 @@ enum DioramaArt {
         pose.tilt = motion.lean
         let bounce = (expression == .cry ? 0 : lift) + (quiet ? 0 : motion.bounce)
         c.fill(FriendArt.ell(feet.x, feet.y, 21, 3), with: .color(.black.opacity(0.07)))
-        FriendArt.draw(c, p.friend, base: CGPoint(x: feet.x, y: feet.y - bounce), size: 35, pose: pose)
+        let friendSize: CGFloat = p.friend == .rakko || p.friend == .shisa ? 44 :
+            (p.friend == .momonga || p.friend == .anoko ? 39 : 35)
+        FriendArt.draw(c, p.friend, base: CGPoint(x: feet.x, y: feet.y - bounce), size: friendSize, pose: pose)
         if !p.reduceMotion {
             if let e = p.pokeElapsed { Effects.hearts(c, from: CGPoint(x: feet.x, y: feet.y - 46), elapsed: e) }
             if asleep { Effects.zzz(c, from: CGPoint(x: feet.x + 15, y: feet.y - 46), t: p.t) }
