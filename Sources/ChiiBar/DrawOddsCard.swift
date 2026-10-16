@@ -2,10 +2,10 @@ import ChiiCore
 import SwiftUI
 
 /// Our three game tiers, using foil/material contrast rather than a rainbow of panel fills.
-private struct CardFinish {
+struct CardFinish {
     let tier: Int
     var code: String { tier == 3 ? "SSR" : tier == 2 ? "SR" : "R" }
-    var name: String { tier == 3 ? "슈퍼 레어" : tier == 2 ? "레어" : "친구" }
+    var name: String { tier == 3 ? "슈퍼 레어" : tier == 2 ? "레어" : "일반" }
     var ink: Color { Ink.rgb(0x273241) }
     var edge: [Color] {
         (tier == 3 ? [0xA76A15, 0xFFE7A0, 0xC9912D, 0xFFF2C1, 0xA76A15] :
@@ -19,6 +19,35 @@ private struct CardFinish {
     }
     var emblem: Color { tier == 3 ? Ink.rgb(0xFFE7A0) : tier == 2 ? Ink.rgb(0xDCE6F3) : Ink.rgb(0xCBD2D7) }
     var gradient: LinearGradient { LinearGradient(colors: edge, startPoint: .topLeading, endPoint: .bottomTrailing) }
+}
+
+/// The same material appears on draw odds and owned-friend cards.
+struct CardFoilBackground: View {
+    let finish: CardFinish
+    var highlighted = false
+    var body: some View {
+        ZStack {
+                LinearGradient(colors: finish.foil, startPoint: .topLeading, endPoint: .bottomTrailing)
+                // Stationary foil facets stay legible and use no continuously running animation.
+                if finish.tier > 1 {
+                    GeometryReader { geo in
+                        Path { p in
+                            p.move(to: CGPoint(x: geo.size.width * 0.15, y: 0))
+                            p.addLine(to: CGPoint(x: geo.size.width * 0.60, y: 0))
+                            p.addLine(to: CGPoint(x: geo.size.width, y: geo.size.height))
+                            p.addLine(to: CGPoint(x: geo.size.width * 0.55, y: geo.size.height))
+                            p.closeSubpath()
+                        }.fill(.white.opacity(highlighted ? 0.55 : 0.28))
+                    }
+                    VStack {
+                        HStack { Image(systemName: "sparkle"); Spacer() }
+                        Spacer()
+                        HStack { Spacer(); Image(systemName: "sparkle") }
+                    }.font(.system(size: 7)).foregroundStyle(.white.opacity(0.9)).padding(5)
+                }
+        }
+        .accessibilityHidden(true)
+    }
 }
 
 struct DrawOddsCard: View {
@@ -84,24 +113,7 @@ private struct OddsCollectorCard: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                LinearGradient(colors: finish.foil, startPoint: .topLeading, endPoint: .bottomTrailing)
-                // Stationary foil facets stay legible and use no continuously running animation.
-                if finish.tier > 1 {
-                    GeometryReader { geo in
-                        Path { p in
-                            p.move(to: CGPoint(x: geo.size.width * 0.15, y: 0))
-                            p.addLine(to: CGPoint(x: geo.size.width * 0.60, y: 0))
-                            p.addLine(to: CGPoint(x: geo.size.width, y: geo.size.height))
-                            p.addLine(to: CGPoint(x: geo.size.width * 0.55, y: geo.size.height))
-                            p.closeSubpath()
-                        }.fill(.white.opacity(hovering ? 0.55 : 0.28))
-                    }
-                    VStack {
-                        HStack { Image(systemName: "sparkle"); Spacer() }
-                        Spacer()
-                        HStack { Spacer(); Image(systemName: "sparkle") }
-                    }.font(.system(size: 7)).foregroundStyle(.white.opacity(0.9)).padding(5)
-                }
+                CardFoilBackground(finish: finish, highlighted: hovering)
                 Canvas { context, size in
                     _ = SpriteArt.drawFace(context, friend, in: CGRect(origin: .zero, size: size), silhouette: true)
                 }.frame(width: 38, height: 38)

@@ -3,7 +3,7 @@
 Claude Code와 Codex를 쓰는 동안, 치이카와 친구가 토큰을 먹고 비박부터 초고층 빌딩 펜트하우스까지 집을 지어 가는 macOS 팬 앱입니다.
 토큰이 쌓여 게이지가 가득 차면 업그레이드 버튼을 눌러 한 단계씩 이사합니다. 남은 경험치는 새 집에서 이어 채워집니다.
 
-**v0.4.7 — 더 잘 보이는 친구들, 문서·기획·리서치로도 키우기 쉬운 성장 비용.**
+**v0.4.8 — 더 잘 보이는 친구들, 문서·기획·리서치로도 키우기 쉬운 성장 비용.**
 별도 가입이나 API 키 없이, Mac에 남는 Codex·Claude Code 사용 기록으로 자랍니다. 앱 자체는 무료이며 AI 서비스 이용료는 별도입니다.
 
 **[최신 버전 다운로드](https://github.com/kitesik/ChiiBar/releases/latest)**
@@ -27,7 +27,7 @@ brew install --cask kitesik/tap/chiibar
 
 macOS 14 Sonoma 이상이 필요합니다. 배포 파일은 Apple Silicon과 Intel Mac 공용입니다.
 
-1. 위 링크에서 `ChiiBar-0.4.7-universal.zip`을 다운로드합니다.
+1. 위 링크에서 `ChiiBar-0.4.8-universal.zip`을 다운로드합니다.
 2. 압축을 풀고 `ChiiBar.app`을 응용 프로그램 폴더로 옮깁니다.
 3. 앱을 실행하고 화면 상단 메뉴 막대의 작은 캐릭터 아이콘을 누릅니다.
 4. 첫 화면에서 **첫 친구 뽑기**를 누르세요. 무료 뽑기권 1장으로 전체 9명 중 한 친구를 만납니다.
@@ -66,6 +66,7 @@ macOS 14 Sonoma 이상이 필요합니다. 배포 파일은 Apple Silicon과 Int
 <img src="docs/friend-reveal.png" width="340" alt="앱 전체 화면의 친구 뽑기 결과">
 <img src="docs/first-meeting.png" width="340" alt="첫 친구를 기다리는 화면">
 <img src="docs/draw-odds.png" width="340" alt="친구별 뽑기 확률 도감">
+<img src="docs/collection.png" width="340" alt="등급별 배경의 친구 모음">
 
 화면 속 수치는 미리보기용 예시입니다. UI는 한국어로 제공됩니다.
 
@@ -115,6 +116,8 @@ ChiiBar는 비공식, 비상업 팬 프로젝트이며 원작 권리자와 관�
 캐릭터 이미지는 작가의 공개 만화를 참고해 AI 도구로 재제작했습니다. 공식 만화 페이지나 애니메이션 프레임 자체를 앱에 포함하지 않습니다. [그림과 참고 자료](Art/Sprites/Manga/README.md)를 확인할 수 있습니다. 비공식·무료 표시는 권리자의 이용 허락을 뜻하지 않습니다.
 
 ## 최근 변경
+
+- **0.4.8:** 친구 모음에도 확률표와 동일한 등급별 배경·테두리를 적용했습니다. R 명칭을 일반으로 바꿨으며 집 그림 없이 현재 집 이름만 표시합니다.
 
 - 집·친구 탭과 업그레이드·집으로 버튼에 둥근 게임풍 아이콘을 적용했습니다.
 

@@ -33,7 +33,7 @@ enum Previews {
             model.state.current = .kurimanju
             model.state.houses[.kurimanju] = House(stage: 1, progress: 5000)
             save("home", CGSize(width: 340, height: 640), PopoverView(model: model))
-            save("odds", CGSize(width: 316, height: 445), DrawOddsCard(firstDraw: false).background(Theme.background))
+            save("odds", CGSize(width: 316, height: 510), DrawOddsCard(firstDraw: false).background(Theme.background))
             model.state.houses[.kurimanju] = House(stage: 1, progress: 20000)
             save("ready", CGSize(width: 340, height: 640), PopoverView(model: model))
             for elapsed in [1.0, 3.6, 5.2] {
@@ -41,6 +41,19 @@ enum Previews {
                 model.gacha = session
                 save("draw_\(elapsed)", CGSize(width: 340, height: 640), PopoverView(model: model))
             }
+            for (index, friend) in FriendID.allCases.enumerated() {
+                model.state.houses[friend] = House(stage: min(13, index + 5))
+            }
+            model.state.houses.removeValue(forKey: .anoko)
+            save("collection", CGSize(width: 316, height: 380), VStack(spacing: 10) {
+                ForEach(0..<3) { row in
+                    HStack(spacing: 8) {
+                        ForEach(0..<3) { column in
+                            CollectionCard(model: model, friend: DrawOdds.ranked[row * 3 + column])
+                        }
+                    }
+                }
+            }.padding(4).background(Theme.background))
             return
         }
 

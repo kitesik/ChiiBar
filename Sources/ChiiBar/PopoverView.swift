@@ -499,31 +499,41 @@ struct CollectionCard: View {
     @ObservedObject var model: AppModel
     let friend: FriendID
     var house: House? { model.state.houses[friend] }
+    private var finish: CardFinish { CardFinish(tier: friend.rarity) }
     var body: some View {
         Button { model.select(friend) } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 0) {
                 Canvas { ctx, size in
                     if house != nil {
-                        FriendArt.draw(ctx, friend, base: CGPoint(x: size.width / 2, y: size.height - 2), size: 28, pose: Pose())
+                        FriendArt.draw(ctx, friend, base: CGPoint(x: size.width / 2, y: size.height - 3), size: 28, pose: Pose())
                     } else {
-                        ctx.draw(Text("?").font(.system(size: 30, weight: .bold)).foregroundColor(Theme.soft),
+                        ctx.draw(Text("?").font(.system(size: 30, weight: .bold)).foregroundColor(finish.ink.opacity(0.5)),
                                  at: CGPoint(x: size.width / 2, y: size.height / 2))
                     }
-                }.frame(height: 50)
-                Text(friend.name).font(.system(size: 12, weight: .bold))
-                Text(house.map { HousePlan.name(of: $0.stage) } ?? "미보유")
-                    .font(.system(size: 9)).foregroundStyle(Theme.soft)
-                    .lineLimit(2).multilineTextAlignment(.center)
-                    .frame(height: 24)
+                }
+                .frame(height: 56)
+                .background(CardFoilBackground(finish: finish))
+                VStack(spacing: 3) {
+                    Text(friend.name).font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(finish.ink)
+                    Text(house.map { HousePlan.name(of: $0.stage) } ?? "미보유")
+                        .font(.system(size: 9)).foregroundStyle(Theme.soft)
+                        .lineLimit(2).multilineTextAlignment(.center)
+                        .frame(height: 24)
+                }
+                .frame(maxWidth: .infinity).padding(.vertical, 5)
+                .background(Ink.rgb(0xFFFDF5))
             }
-            .frame(maxWidth: .infinity).padding(.vertical, 5)
-            .background(house == nil ? Ink.rgb(0xECE8EC) : friend.chipTint, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(model.state.current == friend ? Theme.accent : Ink.rgb(0xD8CCAE), lineWidth: model.state.current == friend ? 2 : 1))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(2)
+            .background(finish.gradient, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(model.state.current == friend ? Theme.actionText : .clear, lineWidth: 2))
+            .opacity(house == nil ? 0.65 : 1)
         }
-        .compositingGroup()
-            .shadow(color: Ink.rgb(0xD8CCAE).opacity(0.45), radius: 0, y: 3)
+        .shadow(color: finish.ink.opacity(0.14), radius: 0, y: 2)
         .buttonStyle(.plain).disabled(house == nil || model.building)
-        .accessibilityLabel("\(friend.name), \(house == nil ? "미보유" : "집으로 이동")")
+        .accessibilityLabel("\(friend.name), \(finish.name), \(house.map { HousePlan.name(of: $0.stage) } ?? "미보유"), \(house == nil ? "아직 만나지 않은 친구" : "집으로 이동")")
+        .accessibilityAddTraits(model.state.current == friend ? .isSelected : [])
     }
 }
 
