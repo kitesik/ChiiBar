@@ -177,14 +177,14 @@ struct FriendHeader: View {
     @ObservedObject var model: AppModel
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
-            Text(model.state.current?.japaneseName ?? "")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(Ink.rgb(0x857789))
             Text(model.state.current?.name ?? "친구")
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 19))
                 .tracking(-0.5)
                 .foregroundStyle(Ink.rgb(0x51404E))
                 .shadow(color: .white, radius: 0, y: 1)
+            Text(model.state.current?.japaneseName ?? "")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(Ink.rgb(0x857789))
             Spacer(minLength: 0)
         }.padding(.horizontal, 4)
     }
@@ -208,11 +208,6 @@ struct StageProgress: View {
         guard carryover == nil, let f = model.state.current, let record = model.state.progressToday(for: f, at: model.now),
               record.startStage == house.stage, let cost = house.nextCost else { return nil }
         return min(1, Double(record.startProgress) / Double(cost))
-    }
-    var label: String {
-        if model.building { return "\(HousePlan.pieceNames[house.stage - 1]) 업그레이드 중" }
-        return house.isComplete ? "펜트하우스 완성"
-            : "다음 집: \(HousePlan.pieceNames[house.stage])"
     }
     private func guidance(_ text: String, icon: String) -> some View {
         HStack(spacing: 5) {
@@ -242,20 +237,6 @@ struct StageProgress: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                if !model.building && !house.isComplete {
-                    Text("다음 집")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Theme.soft)
-                    Text(HousePlan.pieceNames[house.stage])
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Ink.rgb(0x795D70))
-                } else {
-                    Text(label).font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Ink.rgb(0x795D70))
-                }
-                Spacer()
-            }
             Clock(fixed: model.fixedNow) { date in
                 let displayed = carryover?.displayedFraction(target: fraction, at: date, reduceMotion: reduceMotion) ?? fraction
                 let carrying = carryover?.isAnimating(at: date) ?? false
