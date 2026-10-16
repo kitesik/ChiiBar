@@ -28,6 +28,19 @@ enum Previews {
         }
         let sz = HouseArt.size
 
+        if ProcessInfo.processInfo.environment["CHIIBAR_WEATHER_ONLY"] == "1" {
+            for weather in [HomeWeather.rain, .snow] {
+                for stage in [1, 3, 9] {
+                    for friend in [FriendID.chiikawa, .usagi, .momonga] {
+                        var p = SceneParams(friend: friend, stage: stage, activity: .tea, t: t0)
+                        p.weatherOverride = weather
+                        save("\(weather.rawValue)-\(stage)-\(friend.rawValue)", sz, scene(p))
+                    }
+                }
+            }
+            return
+        }
+
         if ProcessInfo.processInfo.environment["CHIIBAR_LAYOUT_ONLY"] == "1" {
             for stage in 1...13 {
                 save("stage_\(stage)", sz, scene(SceneParams(friend: .hachiware, stage: stage, activity: .tea, t: t0)))

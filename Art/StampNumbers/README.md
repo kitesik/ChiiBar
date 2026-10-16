@@ -16,3 +16,7 @@ Production numeral PNGs for the daily upgrade stamp, created with the built-in i
 ## 손그림 파스텔 배지 (0.4.13)
 
 `badge-pastel.png`는 사용자가 제공한 치이카와 그림의 선과 명도·배색을 참고해 내장 이미지 생성 도구로 제작한 배지입니다. 강한 금속 광택과 주황색을 크림색 테두리·하늘색 중심·민트색 뒷판과 갈색 선으로 바꿨습니다. 중앙 숫자와 리본 배치는 유지했습니다. 요청은 `badge-pastel-prompt.txt`에 기록했습니다.
+
+## Upright numerals (0.4.17)
+
+All 31 numeral images were regenerated with the built-in image_gen tool. Upright strokes, softly rounded corners, pale butter yellow fill and a warm brown outline replace the curled, extruded lettering. Each saved PNG is an unchanged generated original. The previous assets remain in Git history. See `upright-prompts.json` for provenance and the shared prompt.

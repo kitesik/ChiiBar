@@ -640,3 +640,23 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         if index > 0 { #expect(DrawOdds.weights[index] > DrawOdds.weights[index - 1]) }
     }
 }
+
+@Test func ambientWeatherAndShelter() {
+    #expect(HomeWeather.moment(at: 0).kind == .clear)
+    #expect(HomeWeather.moment(at: 239.99).kind == .clear)
+    #expect(HomeWeather.moment(at: 240).intensity == 0)
+    #expect(HomeWeather.moment(at: 250).kind == .rain)
+    #expect(HomeWeather.moment(at: 315).kind == .clear)
+    #expect(HomeWeather.moment(at: 850).kind == .snow)
+    #expect(HomeWeather.moment(at: 930).kind == .clear)
+    #expect(HomeWeather.moment(at: 1450).kind == .rain)
+    for friend in FriendID.allCases {
+        for stage in 3...13 {
+            #expect(HomeWeather.rain.reaction(friend: friend, stage: stage) == .calm)
+        }
+    }
+    #expect(HomeWeather.rain.reaction(friend: .chiikawa, stage: 1) == .tearful)
+    #expect(HomeWeather.snow.reaction(friend: .usagi, stage: 1) == .play)
+    #expect(HomeWeather.snow.reaction(friend: .kurimanju, stage: 1) == .shiver)
+    #expect(HomeWeather.snow.reaction(friend: .rakko, stage: 1) == .calm)
+}

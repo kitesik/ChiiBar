@@ -36,8 +36,8 @@ struct IllustratedNumber: View {
                     comma.addQuadCurve(to: CGPoint(x: x + width * 0.25, y: y + height * 0.71),
                         control: CGPoint(x: x - width * 0.1, y: y + height * 0.84))
                     comma.closeSubpath()
-                    context.fill(comma, with: .color(Ink.rgb(0xFFE7A0)))
-                    context.stroke(comma, with: .color(Ink.rgb(0x8B573E)),
+                    context.fill(comma, with: .color(Ink.rgb(0xFFE9AA)))
+                    context.stroke(comma, with: .color(Ink.rgb(0x695548)),
                         style: StrokeStyle(lineWidth: max(0.65, height * 0.025), lineJoin: .round))
                 }
                 x += width + gap * height

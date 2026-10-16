@@ -18,6 +18,10 @@ struct SceneParams {
     var previousStage: Int?
     var previousFraction: Double?
     var progressElapsed: Double?
+    var weatherOverride: HomeWeather?
+    var weather: HomeWeather.Moment {
+        weatherOverride.map { HomeWeather.Moment(kind: $0) } ?? HomeWeather.moment(at: t)
+    }
 }
 
 /// Doll-house cross-section drawn in a 320 x 210 space, scaled to fit.

@@ -50,12 +50,12 @@ enum DioramaArt {
     }
     static func draw(_ canvas: GraphicsContext, _ p: SceneParams) -> Bool {
         canvas.fill(Path(CGRect(x: 0, y: 0, width: 320, height: 210)), with: .color(Ink.rgb(0xFFF9EF)))
+        WeatherArt.draw(canvas, moment: p.weather, time: p.t, reduced: p.reduceMotion)
         var c = canvas
         // Keep the house centred below the separate next-house header.
         c.translateBy(x: 41.6, y: 53)
         c.scaleBy(x: 0.74, y: 0.74)
         guard let image = images[p.stage] else { return false }
-        c.fill(Path(CGRect(x: 0, y: 0, width: 320, height: 210)), with: .color(Ink.rgb(0xFFF9EF)))
         func imageFrame(_ stage: Int) -> CGRect {
             let scale = roomScale(stage)
             return CGRect(x: 160 - 160 * scale, y: 180 - 185 * scale, width: 320 * scale, height: 213.333 * scale)
@@ -77,7 +77,14 @@ enum DioramaArt {
         let newHome = completion.map { $0 >= 0 && $0 < 5.0 } ?? false
         let celebrating = p.pokeElapsed != nil || p.endingElapsed != nil || newHome
         let resting = motion.bounce == 0 && motion.lean == 0
-        let expression = MangaExpression.select(friend: p.friend, stage: p.stage, time: p.t, responding: celebrating)
+        let weather = p.weather
+        let reaction = weather.kind.reaction(friend: p.friend, stage: p.stage)
+        let reacting = weather.intensity > 0.4 && !celebrating
+        var expression = MangaExpression.select(friend: p.friend, stage: p.stage, time: p.t, responding: celebrating)
+        if reacting && reaction == .tearful { expression = .cry }
+        if reacting && weather.kind == .rain && HomeWeather.sheltered(stage: p.stage) && p.friend == .chiikawa {
+            expression = .relief
+        }
         let quiet = expression == .cry || resting
         let asleep = false // No sleep expression is admitted without its own original-panel reference.
         let elapsed = p.pokeElapsed ?? (newHome ? completion : nil) ?? p.arrivalElapsed ?? ArrivalMotion.elapsed(at: p.t, friend: p.friend)
@@ -89,7 +96,21 @@ enum DioramaArt {
         pose.blinking = !p.reduceMotion && !asleep && !celebrating && ArrivalMotion.blinking(at: p.t, friend: p.friend)
         pose.squish = p.reduceMotion || asleep ? 1 : ArrivalMotion.spring(elapsed: elapsed)
         pose.tilt = motion.lean
-        let bounce = (expression == .cry ? 0 : lift) + (quiet ? 0 : motion.bounce)
+        var bounce = (expression == .cry ? 0 : lift) + (quiet ? 0 : motion.bounce)
+        if reacting && !p.reduceMotion {
+            switch reaction {
+            case .play:
+                bounce += pow(max(0, sin(p.t * 3.6)), 2) * 4 * weather.intensity
+                pose.tilt += sin(p.t * 1.8) * 0.04 * weather.intensity
+            case .shiver, .fuss:
+                pose.tilt += sin(p.t * (reaction == .fuss ? 5 : 12)) * 0.025 * weather.intensity
+                bounce = min(bounce, 1)
+            case .curious:
+                pose.tilt += sin(p.t * 0.8) * 0.045 * weather.intensity
+            case .tearful: bounce = 0
+            case .calm: break
+            }
+        }
         c.fill(FriendArt.ell(feet.x, feet.y, 21, 3), with: .color(.black.opacity(0.07)))
         let friendSize: CGFloat = p.friend == .rakko || p.friend == .shisa ? 44 :
             (p.friend == .momonga || p.friend == .anoko ? 39 : 35)
@@ -102,6 +123,9 @@ enum DioramaArt {
                 if p.endingElapsed == nil { Effects.confetti(c, elapsed: e) }
                 HouseArt.sparkles(c, around: CGPoint(x: 160, y: 100), elapsed: e)
             }
+        }
+        if !HomeWeather.sheltered(stage: p.stage) {
+            WeatherArt.draw(canvas, moment: weather, time: p.t, reduced: p.reduceMotion, foreground: true)
         }
         c.fill(Path(roundedRect: CGRect(x: 65, y: 190, width: 190, height: 19), cornerRadius: 8), with: .color(Ink.rgb(0xFFF9EF).opacity(0.95)))
         c.draw(Text(HousePlan.name(of: p.stage)).font(.system(size: 10 / 0.74, weight: .bold)).foregroundColor(HousingJourney.ink), at: CGPoint(x: 160, y: 200))
