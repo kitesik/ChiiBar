@@ -25,7 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
         popover.behavior = .transient
         popover.delegate = self
-        popover.contentSize = NSSize(width: 340, height: 640)
+        popover.contentSize = NSSize(width: 340, height: 710)
 
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.autosaveName = "ChiiBar.MainStatusItem"
@@ -53,7 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         popover.performClose(nil)
         if let onboardingWindow { onboardingWindow.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return }
         let preview = AppModel(state: GameState(now: Date()), stateURL: nil, isDemo: true)
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 340, height: 640),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 340, height: 710),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.title = "첫 시작 체험 · 실제 진행은 그대로"
         window.isReleasedWhenClosed = false

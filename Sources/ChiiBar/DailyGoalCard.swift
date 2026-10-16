@@ -27,13 +27,14 @@ struct DailyGoalCard: View {
                     .padding(.bottom, 4)
                     .fixedSize()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(.bottom, 2)
             ProgressTrack(fraction: min(1, ratio), sweepFrom: nil, fixedNow: .distantPast)
                 .accessibilityHidden(true)
             Text("\(amount) / \(Self.target / 10_000)만")
                 .font(.system(size: 9, weight: .medium))
                 .lineLimit(1).minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity)
         }
         .foregroundStyle(Ink.rgb(0x66594E))
         .padding(.horizontal, 15).padding(.top, 4).padding(.bottom, 15)

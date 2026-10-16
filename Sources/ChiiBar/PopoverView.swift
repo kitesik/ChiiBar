@@ -94,7 +94,7 @@ struct PopoverView: View {
                 AnyView(PopoverView(model: demoModel, closeDemo: { self.demoModel = nil }))
             }
         }
-        .frame(width: 340, height: 640)
+        .frame(width: 340, height: 710)
         .foregroundStyle(Theme.text)
         .onAppear { model.welcome() }
     }
@@ -351,21 +351,38 @@ struct TodayDashboardView: View {
             let records = (model.state.dailyProgress ?? [:]).values.filter { $0.day == DayKey.of(date) }
             let earned = records.reduce(Int64(0)) { $0 + $1.earned }
             let upgrades = records.reduce(0) { $0 + $1.upgrades }
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text("오늘의 대시보드").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.soft)
+            VStack(spacing: 0) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("오늘의 대시보드")
+                        .font(.custom("AppleSDGothicNeo-Heavy", size: 12))
+                        .foregroundStyle(Ink.rgb(0x625144))
                     Spacer()
-                    Image(systemName: "sun.max.fill").foregroundStyle(Ink.rgb(0xD8AF51))
+                    Text(date, format: .dateTime.month().day().locale(Locale(identifier: "ko_KR")))
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(Ink.rgb(0x8C7B66))
                 }
-                HStack(alignment: .center, spacing: 14) {
-                    UpgradeBadge(count: upgrades)
-                        .frame(width: 112)
+                .padding(.horizontal, 13).padding(.vertical, 10)
+                .background(Ink.rgb(0xF4E9CB))
+                Rectangle().fill(Ink.rgb(0x8D7962).opacity(0.35)).frame(height: 1)
+                HStack(alignment: .center, spacing: 10) {
+                    VStack(spacing: 3) {
+                        UpgradeBadge(count: upgrades)
+                        Text("집을 키운 횟수")
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(Ink.rgb(0x897969))
+                    }.frame(width: 112)
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(Ink.rgb(0xCDBF9F).opacity(0.65))
+                        .frame(width: 1, height: 98)
                     DailyGoalCard(earned: earned)
                 }
+                .padding(.horizontal, 10).padding(.vertical, 12)
             }
-            .padding(12)
-            .background(LinearGradient(colors: [Ink.rgb(0xFFFCF3), .white], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Ink.rgb(0xD8CCAE), lineWidth: 1.5))
+            .background(Ink.rgb(0xFFFCF1))
+            .clipShape(RoundedRectangle(cornerRadius: 15))
+            .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(Ink.rgb(0x8D7962), lineWidth: 1.4))
+            .compositingGroup()
+            .shadow(color: Ink.rgb(0xCADCCE), radius: 0, y: 3)
             .accessibilityElement(children: .combine)
         }
     }

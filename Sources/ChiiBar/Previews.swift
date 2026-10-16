@@ -84,14 +84,14 @@ enum Previews {
             let model = fixtureModel(lastTokenAgo: 60)
             model.state.current = .kurimanju
             model.state.houses[.kurimanju] = House(stage: 1, progress: 5000)
-            save("home", CGSize(width: 340, height: 640), PopoverView(model: model))
+            save("home", CGSize(width: 340, height: 710), PopoverView(model: model))
             save("odds", CGSize(width: 316, height: 510), DrawOddsCard(firstDraw: false).background(Theme.background))
             model.state.houses[.kurimanju] = House(stage: 1, progress: 20000)
-            save("ready", CGSize(width: 340, height: 640), PopoverView(model: model))
+            save("ready", CGSize(width: 340, height: 710), PopoverView(model: model))
             for elapsed in [1.0, 3.6, 5.2] {
                 let session = GachaSession(start: now.addingTimeInterval(-elapsed), result: DrawResult(friend: .kurimanju, outcome: .newFriend))
                 model.gacha = session
-                save("draw_\(elapsed)", CGSize(width: 340, height: 640), PopoverView(model: model))
+                save("draw_\(elapsed)", CGSize(width: 340, height: 710), PopoverView(model: model))
             }
             for (index, friend) in FriendID.allCases.enumerated() {
                 model.state.houses[friend] = House(stage: min(13, index + 5))
@@ -112,7 +112,7 @@ enum Previews {
         if ProcessInfo.processInfo.environment["CHIIBAR_GACHA_ONLY"] == "1" {
             let collection = fixtureModel(lastTokenAgo: 60)
             collection.tab = .friends
-            save("friends_title", CGSize(width: 340, height: 640), PopoverView(model: collection))
+            save("friends_title", CGSize(width: 340, height: 710), PopoverView(model: collection))
             for (index, t) in [0.2, 1.0, 1.8, 3.6].enumerated() {
                 save("gacha_refined_\(index)", GachaArt.size,
                      GachaCanvas(t: t, result: DrawResult(friend: .usagi, outcome: .newFriend)))
@@ -133,13 +133,13 @@ enum Previews {
             }
             let ready = fixtureModel(lastTokenAgo: 60)
             ready.state.houses[.hachiware] = House(stage: 2, progress: HousePlan.cost(ofStage: 3) + HousePlan.cost(ofStage: 4) / 2)
-            save("manual_ready", CGSize(width: 340, height: 640), PopoverView(model: ready))
+            save("manual_ready", CGSize(width: 340, height: 710), PopoverView(model: ready))
             let celebration = fixtureModel(lastTokenAgo: 60)
             celebration.state.houses[.hachiware] = House(stage: 3, progress: 2_000_000)
             celebration.reveal = (3, now.addingTimeInterval(-3.7))
             celebration.upgradeNotice = ("벽돌집 입주!", now.addingTimeInterval(-0.7))
-            save("joyful_complete", CGSize(width: 340, height: 640), PopoverView(model: celebration))
-            save("carryover_notice", CGSize(width: 340, height: 640), PopoverView(model: carryoverModel(elapsed: 2.2)))
+            save("joyful_complete", CGSize(width: 340, height: 710), PopoverView(model: celebration))
+            save("carryover_notice", CGSize(width: 340, height: 710), PopoverView(model: carryoverModel(elapsed: 2.2)))
             renderCarryover(to: out)
             renderAssembly(to: out)
             for e in [0.5, 1.2, 1.8, 2.5, 3.0] {
@@ -236,7 +236,7 @@ enum Previews {
             }
         })
         let demo = AppModel.demo()
-        save("demo_home", CGSize(width: 340, height: 640), PopoverView(model: demo))
+        save("demo_home", CGSize(width: 340, height: 710), PopoverView(model: demo))
         var pet = SceneParams(friend: .hachiware, stage: 6, activity: .tea, t: t0)
         pet.pokeElapsed = 0.45
         pet.bubble = "에헤헤!"
@@ -268,7 +268,7 @@ enum Previews {
         }
         save("gacha_again", GachaArt.size, GachaCanvas(t: 3.6, result: DrawResult(friend: .shisa, outcome: .gift(stage: 5))))
 
-        let popSize = CGSize(width: 340, height: 640)
+        let popSize = CGSize(width: 340, height: 710)
         for (name, ago) in [("busy", 60.0), ("idle", 600.0), ("sleeping", 3600.0)] {
             save("popover_\(name)", popSize, PopoverView(model: fixtureModel(lastTokenAgo: ago)))
         }
