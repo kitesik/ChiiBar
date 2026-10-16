@@ -77,6 +77,7 @@ extension FriendID: CodingKeyRepresentable {}
 /// Shared by the actual draw and the probability display.
 public enum DrawOdds {
     // Mascot-first game design: Chiikawa is the rarest; these are not popularity-poll shares.
+    public static var displayOrder: [FriendID] { ranked.reversed() }
     public static let ranked: [FriendID] = [.chiikawa, .usagi, .hachiware, .momonga, .kurimanju, .shisa, .kani, .rakko, .anoko]
     public static let weights = [2, 3, 5, 7, 10, 13, 16, 20, 24]
     public static var totalWeight: Int { weights.reduce(0, +) }

@@ -88,7 +88,7 @@ enum Previews {
                 ForEach(0..<3) { row in
                     HStack(spacing: 8) {
                         ForEach(0..<3) { column in
-                            CollectionCard(model: model, friend: DrawOdds.ranked[row * 3 + column])
+                            CollectionCard(model: model, friend: DrawOdds.displayOrder[row * 3 + column])
                         }
                     }
                 }

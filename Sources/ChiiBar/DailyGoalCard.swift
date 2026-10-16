@@ -18,13 +18,13 @@ struct DailyGoalCard: View {
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 10))
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, 4)
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
-                StampNumber(text: percent, size: 24,
-                            colors: [Ink.rgb(0x3C6178), Ink.rgb(0x315469)], ink: .white)
-                    .minimumScaleFactor(0.25)
+            HStack(alignment: .bottom, spacing: 3) {
+                IllustratedNumber(count: Int(floor(ratio * 100)),
+                    width: min(108, CGFloat(String(Int(floor(ratio * 100))).count) * 24), height: 32)
                 Text("%")
                     .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundStyle(Ink.rgb(0x52788E))
+                    .foregroundStyle(Ink.rgb(0x776454))
+                    .padding(.bottom, 4)
                     .fixedSize()
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -59,7 +59,7 @@ struct DrawOddsCard: View {
                 Spacer()
                 Text("전체 9명").font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
             }.padding(.horizontal, 2)
-            ForEach([3, 2, 1], id: \.self) { tier in
+            ForEach([1, 2, 3], id: \.self) { tier in
                 RarityPackRow(tier: tier)
             }
             Text(firstDraw ? "첫 뽑기도 같은 확률 · 9명 모두 만날 수 있어요" : "매번 같은 확률 · 이미 만난 친구도 나와요")
@@ -93,7 +93,7 @@ private struct RarityPackRow: View {
             }.padding(.horizontal, 10).padding(.vertical, 5)
                 .background(LinearGradient(colors: [Ink.rgb(0x374351), Ink.rgb(0x202834)], startPoint: .leading, endPoint: .trailing))
             HStack(spacing: 7) {
-                ForEach(DrawOdds.ranked.filter { $0.rarity == tier }, id: \.self) { friend in
+                ForEach(DrawOdds.displayOrder.filter { $0.rarity == tier }, id: \.self) { friend in
                     OddsCollectorCard(friend: friend, finish: finish)
                 }
             }.padding(7)

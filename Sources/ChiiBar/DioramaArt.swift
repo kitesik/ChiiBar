@@ -46,13 +46,13 @@ enum DioramaArt {
     static func hitCenter(_ p: SceneParams) -> CGPoint {
         guard images[p.stage] != nil else { return CGPoint(x: 60, y: 157) }
         let feet = position(p)
-        return CGPoint(x: feet.x * 0.74, y: 190 * 0.26 + feet.y * 0.74 - 22)
+        return CGPoint(x: 41.6 + feet.x * 0.74, y: 53 + feet.y * 0.74 - 22)
     }
     static func draw(_ canvas: GraphicsContext, _ p: SceneParams) -> Bool {
         canvas.fill(Path(CGRect(x: 0, y: 0, width: 320, height: 210)), with: .color(Ink.rgb(0xFFF9EF)))
         var c = canvas
-        // Reserve a separate right-hand lane, including construction overshoot.
-        c.translateBy(x: 0, y: 190 * 0.26)
+        // Keep the house centred below the separate next-house header.
+        c.translateBy(x: 41.6, y: 53)
         c.scaleBy(x: 0.74, y: 0.74)
         guard let image = images[p.stage] else { return false }
         c.fill(Path(CGRect(x: 0, y: 0, width: 320, height: 210)), with: .color(Ink.rgb(0xFFF9EF)))
@@ -109,13 +109,13 @@ enum DioramaArt {
         if let b = p.bubble { Effects.bubble(c, text: b, near: CGPoint(x: feet.x, y: feet.y - 50 / 0.74)) }
         // A mystery silhouette, without a separate card or progress fill.
         if p.stage < 13, let next = images[p.stage + 1] {
-            let inset = CGRect(x: 258, y: 20, width: 58, height: 39)
+            let inset = CGRect(x: 268, y: 14, width: 45, height: 30)
             canvas.draw(Text("다음 집").font(.system(size: 9, weight: .bold)).foregroundColor(Ink.rgb(0x736B72)),
-                   at: CGPoint(x: inset.midX, y: 9))
+                   at: CGPoint(x: inset.midX, y: 5))
             var silhouette = canvas.resolve(Image(decorative: next, scale: 1))
             silhouette.shading = .color(.black)
             canvas.draw(silhouette, in: inset)
-            canvas.draw(Text("?").font(.system(size: 22, weight: .heavy, design: .rounded)).foregroundColor(.white),
+            canvas.draw(Text("?").font(.system(size: 18, weight: .heavy, design: .rounded)).foregroundColor(.white),
                    at: CGPoint(x: inset.midX, y: inset.midY))
         }
         return true

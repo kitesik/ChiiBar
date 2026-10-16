@@ -4,6 +4,8 @@ import SwiftUI
 /// 0...30 are individually illustrated numbers. Larger counts use the same drawn digits.
 struct IllustratedNumber: View {
     let count: Int
+    var width: CGFloat? = nil
+    var height: CGFloat = 38
     var body: some View {
         let images = NumberArtwork.images(for: max(0, count))
         Canvas { context, size in
@@ -21,7 +23,7 @@ struct IllustratedNumber: View {
                 x += width + gap * height
             }
         }
-        .frame(width: count < 10 ? 38 : 60, height: 38)
+        .frame(width: width ?? (count < 10 ? 38 : 60), height: height)
         .accessibilityLabel("\(count)")
     }
 }

@@ -483,7 +483,7 @@ struct FriendsView: View {
                         .font(.system(size: 12)).foregroundStyle(Theme.soft)
                 }
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
-                    ForEach(FriendID.allCases, id: \.self) { f in
+                    ForEach(DrawOdds.displayOrder, id: \.self) { f in
                         CollectionCard(model: model, friend: f)
                     }
                 }
