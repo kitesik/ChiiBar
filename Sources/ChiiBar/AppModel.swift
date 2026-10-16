@@ -39,6 +39,7 @@ final class AppModel: ObservableObject {
         self.state = state
         self.stateURL = stateURL
         self.fixedNow = fixedNow
+        self.state.reconcileRoster()
         self.state.observeProgress(at: fixedNow ?? Date())
     }
 
@@ -106,8 +107,8 @@ final class AppModel: ObservableObject {
 
     static func demo() -> AppModel {
         var state = GameState(now: Date())
-        state.met = FriendID.allCases
-        state.houses = Dictionary(uniqueKeysWithValues: FriendID.allCases.map { ($0, House()) })
+        state.met = FriendID.visible
+        state.houses = Dictionary(uniqueKeysWithValues: FriendID.visible.map { ($0, House()) })
         state.current = .chiikawa
         let model = AppModel(state: state, stateURL: nil, isDemo: true)
         model.activityOverride = .tea
@@ -124,8 +125,8 @@ final class AppModel: ObservableObject {
     }
 
     func nextDemoFriend() {
-        guard isDemo, let friend = state.current, let index = FriendID.allCases.firstIndex(of: friend) else { return }
-        select(FriendID.allCases[(index + 1) % FriendID.allCases.count])
+        guard isDemo, let friend = state.current, let index = FriendID.visible.firstIndex(of: friend) else { return }
+        select(FriendID.visible[(index + 1) % FriendID.visible.count])
     }
 
     func say(_ text: String) { bubble = (text, now) }

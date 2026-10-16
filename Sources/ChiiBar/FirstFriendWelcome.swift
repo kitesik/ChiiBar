@@ -35,7 +35,7 @@ struct FirstFriendWelcome: View {
                 }.padding(.vertical, 5)
             }.buttonStyle(UpgradeActionStyle())
                 .padding(.top, 14).disabled(model.state.tickets == 0 || model.gacha != nil)
-            Text("\(FriendID.allCases.count)명 중 한 친구가 찾아와요")
+            Text("\(FriendID.visible.count)종 중 한 친구가 찾아와요")
                 .font(.system(size: 10)).foregroundStyle(Theme.soft).padding(.top, 12)
             Button("친구별 뽑기 확률 보기") { model.tab = .friends }
                 .font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.actionText)

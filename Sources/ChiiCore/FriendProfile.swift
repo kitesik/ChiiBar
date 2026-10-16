@@ -14,7 +14,9 @@ extension FriendID {
         case .shisa: "라멘집 ‘로’의 조수예요. 라멘 갑옷 씨를 스승님이라고 불러요."
         case .kani: "헌책을 팔아요. 모몽가에게 받은 게 모양 머리띠를 쓰고 있어요."
         case .anoko: "일본어 이름은 ‘아노코(あのこ)’, 우리말로는 ‘그 아이’예요. 커다란 몸집이 눈에 띄는 캐릭터예요."
-        case .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple:
+        case .pajamaGreen:
+            "초록·분홍·하양·보라 잠옷을 입은 네 친구가 한 팀이에요. 포셰트 갑옷 씨가 만든 잠옷을 입고 노래와 춤을 선보여요."
+        case .pajamaPink, .pajamaWhite, .pajamaPurple:
             "파자마파티즈의 멤버예요. 포셰트 갑옷 씨가 만든 잠옷을 입고 함께 노래와 춤을 선보여요."
         case .pochette: "귀여운 것을 좋아해요. 직접 만든 포셰트와 잠옷을 팔며, 노동 갑옷 씨와 친해요."
         case .labor: "일거리 접수를 맡고 있어요. 포셰트 갑옷 씨와 사이가 좋아요."
@@ -31,7 +33,7 @@ extension FriendID {
         case .shisa: ["라멘집 조수", "스승님"]
         case .kani: ["헌책", "게 머리띠"]
         case .anoko: ["그 아이", "커다란 몸집"]
-        case .pajamaGreen: ["파자마파티즈", "초록 잠옷"]
+        case .pajamaGreen: ["네 친구가 한 팀", "노래와 춤"]
         case .pajamaPink: ["파자마파티즈", "분홍 잠옷"]
         case .pajamaWhite: ["파자마파티즈", "하얀 잠옷"]
         case .pajamaPurple: ["파자마파티즈", "보라 잠옷"]

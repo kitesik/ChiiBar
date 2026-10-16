@@ -44,7 +44,7 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         case .shisa: "시사"
         case .anoko: "아노코"
         case .kani: "카니"
-        case .pajamaGreen: "초록 파자마"
+        case .pajamaGreen: "파자마파티즈"
         case .pajamaPink: "분홍 파자마"
         case .pajamaWhite: "하얀 파자마"
         case .pajamaPurple: "보라 파자마"
@@ -65,7 +65,7 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         case .shisa: "シーサー"
         case .anoko: "あのこ"
         case .kani: "古本屋"
-        case .pajamaGreen: "パジャマパーティーズ・みどり"
+        case .pajamaGreen: "パジャマパーティーズ"
         case .pajamaPink: "パジャマパーティーズ・ぴんく"
         case .pajamaWhite: "パジャマパーティーズ・しろ"
         case .pajamaPurple: "パジャマパーティーズ・むらさき"
@@ -82,6 +82,9 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// Hidden IDs remain decodable so existing saves retain their records.
+    public static let visible: [FriendID] = [.chiikawa, .hachiware, .usagi, .momonga, .kurimanju, .rakko, .shisa, .anoko, .kani, .pajamaGreen]
+    public static let pajamaMembers: [FriendID] = [.pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple]
     public static let starters: [FriendID] = [.chiikawa, .hachiware, .usagi]
 }
 
@@ -91,8 +94,8 @@ extension FriendID: CodingKeyRepresentable {}
 public enum DrawOdds {
     // Mascot-first game design: Chiikawa is the rarest; these are not popularity-poll shares.
     public static var displayOrder: [FriendID] { ranked.reversed() }
-    public static let ranked: [FriendID] = [.chiikawa, .usagi, .hachiware, .momonga, .kurimanju, .shisa, .pochette, .labor, .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple, .kani, .rakko, .anoko]
-    public static let weights = [2, 3, 5, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8]
+    public static let ranked: [FriendID] = [.chiikawa, .usagi, .hachiware, .momonga, .kurimanju, .shisa, .pajamaGreen, .kani, .rakko, .anoko]
+    public static let weights = [2, 3, 5, 7, 10, 12, 13, 14, 16, 18]
     public static var totalWeight: Int { weights.reduce(0, +) }
     public static func friend(for roll: Int) -> FriendID {
         precondition((0..<totalWeight).contains(roll))
@@ -104,7 +107,8 @@ public enum DrawOdds {
         preconditionFailure("Invalid draw weights")
     }
     public static func probability(of friend: FriendID, firstDraw: Bool = false) -> Double {
-        Double(weights[ranked.firstIndex(of: friend)!]) / Double(totalWeight)
+        guard let index = ranked.firstIndex(of: friend) else { return 0 }
+        return Double(weights[index]) / Double(totalWeight)
     }
 }
 
@@ -182,6 +186,8 @@ public struct DailyProgress: Codable, Sendable, Equatable {
 public struct GameState: Codable, Sendable, Equatable {
     public var economyVersion: Int? = Tuning.economyVersion
     public var creditFrom: Date
+    public var rosterVersion: Int?
+    public var archivedPajamaHouses: [FriendID: House]?
     public var tickets: Int = 1
     public var ticketProgress: Int64 = 0
     public var houses: [FriendID: House] = [:]
@@ -195,6 +201,32 @@ public struct GameState: Codable, Sendable, Equatable {
     /// A new state credits tokens from local midnight of `now` and holds one free ticket.
     public init(now: Date, calendar: Calendar = .current) {
         creditFrom = calendar.startOfDay(for: now)
+        rosterVersion = 1
+    }
+
+    public var visibleOwnedCount: Int { FriendID.visible.filter { houses[$0] != nil }.count }
+
+    /// Preserve every original record; the group continues the most advanced member's house.
+    public mutating func reconcileRoster() {
+        if rosterVersion != 1 {
+            let originals = houses.filter { FriendID.pajamaMembers.contains($0.key) }
+            if !originals.isEmpty {
+                archivedPajamaHouses = originals
+                let best = FriendID.pajamaMembers.filter { houses[$0] != nil }.max {
+                    let a = houses[$0]!, b = houses[$1]!
+                    return a.stage == b.stage ? a.progress < b.progress : a.stage < b.stage
+                }!
+                houses[.pajamaGreen] = houses[best]
+                if let record = dailyProgress?[best] { dailyProgress?[.pajamaGreen] = record }
+                if !met.contains(.pajamaGreen) { met.append(.pajamaGreen) }
+            }
+            if visibleOwnedCount == 0 && !houses.isEmpty && tickets == 0 { tickets = 1 }
+            rosterVersion = 1
+        }
+        if let selected = current, !FriendID.visible.contains(selected) {
+            current = FriendID.pajamaMembers.contains(selected) && houses[.pajamaGreen] != nil
+                ? .pajamaGreen : FriendID.visible.first { houses[$0] != nil }
+        }
     }
 
     public var currentHouse: House? { current.flatMap { houses[$0] } }
@@ -298,7 +330,7 @@ public struct GameState: Codable, Sendable, Equatable {
     }
 
     public mutating func select(_ id: FriendID) {
-        if houses[id] != nil { current = id }
+        if FriendID.visible.contains(id), houses[id] != nil { current = id }
     }
 
     public func today(_ now: Date) -> Int64 { Tuning.experience(forDailyTokens: dayTotals[DayKey.of(now)] ?? 0) }
@@ -395,7 +427,9 @@ public enum Store {
     public static func load(_ url: URL) -> GameState? {
         guard let data = try? Data(contentsOf: url) else { return nil }
         guard let state = try? JSONDecoder().decode(GameState.self, from: data), isValid(state) else { return nil }
-        return migrate(state)
+        var updated = migrate(state)
+        updated.reconcileRoster()
+        return updated
     }
 
     private static func isValid(_ s: GameState) -> Bool {
@@ -404,7 +438,7 @@ public enum Store {
         && s.ticketProgress < (s.economyVersion == nil ? Tuning.legacyTicketCost : s.economyVersion == 2 ? 150_000 : Tuning.ticketCost)
         && s.dayTotals.values.allSatisfy { $0 >= 0 }
         && Set(s.met).count == s.met.count && Set(s.met) == Set(s.houses.keys)
-        && (s.current.map { s.houses[$0] != nil } ?? s.houses.isEmpty)
+        && (s.current.map { s.houses[$0] != nil } ?? (s.visibleOwnedCount == 0))
         && s.houses.values.allSatisfy {
             (1...HousePlan.lastStage).contains($0.stage) && $0.progress >= 0
             && ($0.stage != HousePlan.lastStage || $0.progress == 0)
@@ -418,8 +452,8 @@ public enum Store {
         let original = try Data(contentsOf: url)
         if let state = load(url) {
             let old = try JSONDecoder().decode(GameState.self, from: original)
-            if old.economyVersion != Tuning.economyVersion {
-                let backup = url.deletingLastPathComponent().appendingPathComponent("state.before-economy-v3-\(UUID().uuidString).json")
+            if old.economyVersion != Tuning.economyVersion || old.rosterVersion != 1 {
+                let backup = url.deletingLastPathComponent().appendingPathComponent("state.before-migration-\(UUID().uuidString).json")
                 try original.write(to: backup, options: .atomic)
             }
             return state

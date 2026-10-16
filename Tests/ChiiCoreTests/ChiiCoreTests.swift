@@ -157,7 +157,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
             #expect(s.tickets == 0)
             #expect(s.draw(using: &rng) == nil)
         }
-        #expect(seen == Set(FriendID.allCases))
+        #expect(seen == Set(FriendID.visible))
     }
 
     @Test func rarityWeights() {
@@ -328,7 +328,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         #expect(fresh.tickets == 1)
         #expect(fresh.houses.isEmpty)
         let backups = try FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
-        #expect(backups.count == 1)
+        try #require(backups.count == 1)
         #expect(try Data(contentsOf: backups[0]) == original)
         try Store.save(fresh, to: url)
         #expect(Store.load(url) == fresh)
@@ -422,8 +422,8 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         #expect(migrated.tickets == 3)
         #expect(migrated.scan == s.scan)
         #expect(migrated.dayTotals == s.dayTotals)
-        let backups = try FileManager.default.contentsOfDirectory(at: url.deletingLastPathComponent(), includingPropertiesForKeys: nil).filter { $0.lastPathComponent.hasPrefix("state.before-economy-v3-") }
-        #expect(backups.count == 1)
+        let backups = try FileManager.default.contentsOfDirectory(at: url.deletingLastPathComponent(), includingPropertiesForKeys: nil).filter { $0.lastPathComponent.hasPrefix("state.before-migration-") }
+        try #require(backups.count == 1)
         #expect(try Data(contentsOf: backups[0]) == original)
         try Store.save(migrated, to: url)
         #expect(try Store.loadOrRecover(url, now: now) == migrated)
@@ -630,10 +630,10 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
     #expect(DrawOdds.totalWeight == 100)
     #expect(buckets.filter { $0 == .chiikawa }.count == 2)
     #expect(FriendID.chiikawa.rarity == 3)
-    #expect(FriendID.allCases.filter { $0 != .chiikawa }.allSatisfy {
+    #expect(FriendID.visible.filter { $0 != .chiikawa }.allSatisfy {
         DrawOdds.probability(of: $0) > DrawOdds.probability(of: .chiikawa)
     })
-    #expect(Set(DrawOdds.ranked) == Set(FriendID.allCases))
+    #expect(Set(DrawOdds.ranked) == Set(FriendID.visible))
     for (index, friend) in DrawOdds.ranked.enumerated() {
         #expect(buckets.filter { $0 == friend }.count == DrawOdds.weights[index])
         #expect(DrawOdds.probability(of: friend, firstDraw: true) == DrawOdds.probability(of: friend))
@@ -675,4 +675,40 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
     #expect(restored == state)
     #expect(restored.houses[.chiikawa]?.progress == 12345)
     #expect(restored.houses[.pajamaGreen]?.stage == 4)
+}
+
+@Test func partyMigrationPreservesRecordsAndHidesArmor() throws {
+    var state = GameState(now: Date())
+    state.rosterVersion = nil
+    state.houses = [.pajamaGreen: House(stage: 2, progress: 100), .pajamaPink: House(stage: 5, progress: 200), .labor: House(stage: 7)]
+    state.met = [.pajamaGreen, .pajamaPink, .labor]
+    state.current = .pajamaPink
+    state.reconcileRoster()
+    #expect(state.current == .pajamaGreen)
+    #expect(state.houses[.pajamaGreen] == House(stage: 5, progress: 200))
+    #expect(state.archivedPajamaHouses?[.pajamaGreen] == House(stage: 2, progress: 100))
+    #expect(state.houses[.labor]?.stage == 7)
+    #expect(state.visibleOwnedCount == 1)
+    let once = state
+    state.reconcileRoster()
+    #expect(state == once)
+    #expect(FriendID.visible.count == 10)
+    for hidden in [FriendID.labor, .pochette, .pajamaPink, .pajamaWhite, .pajamaPurple] {
+        #expect(DrawOdds.probability(of: hidden) == 0)
+        #expect(!(0..<100).map { DrawOdds.friend(for: $0) }.contains(hidden))
+    }
+    var armorOnly = GameState(now: Date())
+    armorOnly.rosterVersion = nil
+    armorOnly.houses = [.labor: House(stage: 4)]
+    armorOnly.met = [.labor]
+    armorOnly.current = .labor
+    armorOnly.tickets = 0
+    armorOnly.reconcileRoster()
+    #expect(armorOnly.current == nil && armorOnly.tickets == 1)
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: dir) }
+    let url = dir.appendingPathComponent("state.json")
+    try Store.save(armorOnly, to: url)
+    #expect(Store.load(url) == armorOnly)
 }

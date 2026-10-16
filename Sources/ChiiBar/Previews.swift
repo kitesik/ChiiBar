@@ -30,7 +30,7 @@ enum Previews {
 
         if ProcessInfo.processInfo.environment["CHIIBAR_FRIENDS_ONLY"] == "1" {
             let model = fixtureModel(lastTokenAgo: 60)
-            for friend in FriendID.allCases {
+            for friend in FriendID.visible {
                 model.state.houses[friend] = House(stage: 3)
                 save("profile_\(friend.rawValue)", CGSize(width: 340, height: 710), FriendDetailView(model: model, friend: friend))
             }
@@ -57,7 +57,7 @@ enum Previews {
                 save("stage_\(stage)", sz, scene(SceneParams(friend: .hachiware, stage: stage, activity: .tea, t: t0)))
             }
             save("menu-faces", CGSize(width: 460, height: 40), HStack(spacing: 8) {
-                ForEach(FriendID.allCases, id: \.self) { friend in
+                ForEach(FriendID.visible, id: \.self) { friend in
                     if let icon = SpriteArt.menuImage(for: friend) { Image(nsImage: icon) }
                 }
             }.background(Color.gray.opacity(0.15)))
@@ -104,16 +104,14 @@ enum Previews {
                 model.gacha = session
                 save("draw_\(elapsed)", CGSize(width: 340, height: 710), PopoverView(model: model))
             }
-            for (index, friend) in FriendID.allCases.enumerated() {
+            for (index, friend) in FriendID.visible.enumerated() {
                 model.state.houses[friend] = House(stage: min(13, index + 5))
             }
             model.state.houses.removeValue(forKey: .anoko)
             save("collection", CGSize(width: 316, height: 640), VStack(spacing: 10) {
-                ForEach(0..<5) { row in
-                    HStack(spacing: 8) {
-                        ForEach(0..<3) { column in
-                            CollectionCard(model: model, friend: DrawOdds.displayOrder[row * 3 + column])
-                        }
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                    ForEach(DrawOdds.displayOrder, id: \.self) { friend in
+                        CollectionCard(model: model, friend: friend)
                     }
                 }
             }.padding(4).background(Theme.background))
@@ -128,7 +126,7 @@ enum Previews {
                 save("gacha_refined_\(index)", GachaArt.size,
                      GachaCanvas(t: t, result: DrawResult(friend: .usagi, outcome: .newFriend)))
             }
-            for friend in FriendID.allCases {
+            for friend in FriendID.visible {
                 save("hidden_result_\(friend.rawValue)", GachaArt.size,
                      GachaCanvas(t: 1.1, result: DrawResult(friend: friend, outcome: .newFriend)))
             }
@@ -163,7 +161,7 @@ enum Previews {
 
         if ProcessInfo.processInfo.environment["CHIIBAR_MANGA_ONLY"] == "1" {
             save("manga_expressions", CGSize(width: 720, height: 660), Canvas { ctx, _ in
-                let entries = FriendID.allCases.flatMap { f in MangaExpression.allowed(for: f).map { (f, $0) } }
+                let entries = FriendID.visible.flatMap { f in MangaExpression.allowed(for: f).map { (f, $0) } }
                 for (i, item) in entries.enumerated() {
                     let x = CGFloat(i % 4) * 180 + 90, y = CGFloat(i / 4) * 220 + 170
                     var pose = Pose(); pose.mangaExpression = item.1
@@ -171,7 +169,7 @@ enum Previews {
                     ctx.draw(Text(item.0.name + " · " + item.1.rawValue).font(.system(size: 12)).foregroundColor(.black), at: CGPoint(x: x, y: y + 24))
                 }
             }.background(Color.white))
-            for (i, f) in FriendID.allCases.enumerated() {
+            for (i, f) in FriendID.visible.enumerated() {
                 save("manga_room_\(i)", sz, scene(SceneParams(friend: f, stage: 3, activity: .tea, t: 1)))
             }
             for e in [0.0, 0.5, 1.2, 2.1, 2.7, 3.1] {
@@ -212,7 +210,7 @@ enum Previews {
         }
         save("ending", sz, scene(SceneParams(friend: .hachiware, stage: 12, activity: .tea, t: t0,
                                              endingElapsed: 1.6, bubble: FriendID.hachiware.dialogue(for: .completed))))
-        for f in FriendID.allCases {
+        for f in FriendID.visible {
             save("character_\(f.rawValue)", sz, scene(SceneParams(friend: f, stage: 12, activity: .tea, t: t0)))
         }
         save("chiikawa_corrected", CGSize(width: 420, height: 320),
@@ -223,11 +221,11 @@ enum Previews {
         var corrected = SceneParams(friend: .chiikawa, stage: 4, activity: .tea, t: t0)
         corrected.constructionProgress = 0.35
         save("chiikawa_home_corrected", sz, scene(corrected))
-        save("character_sheet", CGSize(width: CGFloat(FriendID.allCases.count) * 100, height: 150), CharacterSheet())
-        save("menu_faces", CGSize(width: CGFloat(FriendID.allCases.count) * 30, height: 30), MenuFaceSheet())
+        save("character_sheet", CGSize(width: CGFloat(FriendID.visible.count) * 100, height: 150), CharacterSheet())
+        save("menu_faces", CGSize(width: CGFloat(FriendID.visible.count) * 30, height: 30), MenuFaceSheet())
         save("all_friends_corrected", CGSize(width: 720, height: 660), Canvas { ctx, _ in
             ctx.fill(Path(CGRect(x: 0, y: 0, width: 720, height: 660)), with: .color(Ink.rgb(0xFFF9EF)))
-            for (i, friend) in FriendID.allCases.enumerated() {
+            for (i, friend) in FriendID.visible.enumerated() {
                 let x = CGFloat(i % 3) * 240 + 120
                 let y = CGFloat(i / 3) * 220
                 FriendArt.draw(ctx, friend, base: CGPoint(x: x, y: y + 190), size: 110, pose: Pose())
@@ -236,7 +234,7 @@ enum Previews {
         })
         save("all_friend_expressions", CGSize(width: 600, height: 1800), Canvas { ctx, _ in
             ctx.fill(Path(CGRect(x: 0, y: 0, width: 600, height: 1800)), with: .color(Ink.rgb(0xFFF9EF)))
-            for (i, friend) in FriendID.allCases.enumerated() {
+            for (i, friend) in FriendID.visible.enumerated() {
                 for col in 0..<3 {
                     var pose = Pose()
                     if col == 1 { pose.eyes = .closed }
@@ -316,7 +314,7 @@ enum Previews {
         collection.tab = .friends
         save("popover_friends", popSize, PopoverView(model: collection))
         let full = fixtureModel(lastTokenAgo: 60)
-        full.state.houses = Dictionary(uniqueKeysWithValues: FriendID.allCases.map { ($0, House(stage: 12)) })
+        full.state.houses = Dictionary(uniqueKeysWithValues: FriendID.visible.map { ($0, House(stage: 12)) })
         full.tab = .friends
         save("popover_friends_all", popSize, PopoverView(model: full))
         save("popover_first_draw", popSize, PopoverView(model: AppModel(state: GameState(now: now), stateURL: nil, fixedNow: now)))
@@ -444,7 +442,7 @@ enum Previews {
         guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 48, nil) else { return }
         CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
         for frame in 0..<48 {
-            let renderer = ImageRenderer(content: MotionSheet(t: Double(frame) / 12).frame(width: CGFloat(FriendID.allCases.count) * 100, height: 170))
+            let renderer = ImageRenderer(content: MotionSheet(t: Double(frame) / 12).frame(width: CGFloat(FriendID.visible.count) * 100, height: 170))
             renderer.scale = 1
             guard let image = renderer.cgImage else { fatalError("motion frame failed") }
             CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 12]] as CFDictionary)
@@ -500,7 +498,7 @@ enum Previews {
 struct MenuFaceSheet: View {
     var body: some View {
         Canvas { ctx, _ in
-            for (i, f) in FriendID.allCases.enumerated() {
+            for (i, f) in FriendID.visible.enumerated() {
                 FriendArt.drawFace(ctx, f, in: CGRect(x: CGFloat(i) * 30 + 6, y: 6, width: 18, height: 18))
             }
         }.background(.white)
@@ -511,7 +509,7 @@ struct MotionSheet: View {
     let t: Double
     var body: some View {
         Canvas { ctx, _ in
-            for (i, f) in FriendID.allCases.enumerated() {
+            for (i, f) in FriendID.visible.enumerated() {
                 var p = ActivityArt.Placement(base: CGPoint(x: 50 + CGFloat(i) * 100, y: 132), size: 58)
                 var pose = Pose()
                 ActivityArt.personality(f, activity: .window, t: t + 1000, placement: &p, pose: &pose)
@@ -536,7 +534,7 @@ struct GachaCanvas: View {
 struct CharacterSheet: View {
     var body: some View {
         Canvas { ctx, size in
-            for (i, f) in FriendID.allCases.enumerated() {
+            for (i, f) in FriendID.visible.enumerated() {
                 FriendArt.draw(ctx, f, base: CGPoint(x: 50 + CGFloat(i) * 100, y: 140), size: 66, pose: Pose())
             }
         }

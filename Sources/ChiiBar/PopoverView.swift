@@ -82,7 +82,7 @@ struct PopoverView: View {
                 .disabled(model.building)
                 if model.tab == .friends {
                     FriendsView(model: model)
-                } else if model.state.houses.isEmpty {
+                } else if model.state.visibleOwnedCount == 0 {
                     FirstFriendWelcome(model: model)
                 } else { HomeView(model: model) }
             }
@@ -115,7 +115,7 @@ struct HomeView: View {
                         Button("경험치 받기") { model.demoGrow() }.disabled(model.building)
                         Button("쓰다듬기") { model.poke() }
                     }.buttonStyle(PrimaryActionStyle())
-                    Text("\(FriendID.allCases.count)명과 13단계 집을 자유롭게 체험해요. 실제 기록은 그대로예요.")
+                    Text("\(FriendID.visible.count)종과 13단계 집을 자유롭게 체험해요. 실제 기록은 그대로예요.")
                         .font(.system(size: 10)).foregroundStyle(Theme.soft)
                 }.padding(.top, 12)
             } else { TodayDashboardView(model: model) }
@@ -484,7 +484,7 @@ struct FriendsView: View {
                     }
                     HStack(alignment: .top, spacing: 5) {
                         Image(systemName: "ticket").foregroundStyle(Theme.soft)
-                        Text(model.state.houses.isEmpty ? "첫 뽑기권 1장을 선물로 드려요" : "토큰을 쓰면 뽑기권이 충전돼요")
+                        Text(model.state.visibleOwnedCount == 0 ? "첫 뽑기권 1장을 선물로 드려요" : "토큰을 쓰면 뽑기권이 충전돼요")
                             .foregroundStyle(Theme.soft)
                     }
                     .font(.system(size: 10, weight: .regular))
@@ -494,11 +494,11 @@ struct FriendsView: View {
                         .font(.system(size: 10)).foregroundStyle(Theme.soft)
                 }
                 .padding(12).background(.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 14))
-                DrawOddsCard(firstDraw: model.state.houses.isEmpty)
+                DrawOddsCard(firstDraw: model.state.visibleOwnedCount == 0)
                 HStack {
                     Text("친구 모음").font(.system(size: 14, weight: .bold))
                     Spacer()
-                    Text("\(model.state.houses.count) / \(FriendID.allCases.count)")
+                    Text("\(model.state.visibleOwnedCount) / \(FriendID.visible.count)")
                         .font(.system(size: 12)).foregroundStyle(Theme.soft)
                 }
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {

@@ -57,12 +57,12 @@ struct DrawOddsCard: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("친구별 뽑기 확률").font(.system(size: 13, weight: .heavy, design: .rounded))
                 Spacer()
-                Text("전체 \(FriendID.allCases.count)명").font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
+                Text("전체 \(FriendID.visible.count)종").font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
             }.padding(.horizontal, 2)
             ForEach([1, 2, 3], id: \.self) { tier in
                 RarityPackRow(tier: tier)
             }
-            Text(firstDraw ? "첫 뽑기도 같은 확률 · \(FriendID.allCases.count)명 모두 만날 수 있어요" : "매번 같은 확률 · 이미 만난 친구도 나와요")
+            Text(firstDraw ? "첫 뽑기도 같은 확률 · \(FriendID.visible.count)종 모두 만날 수 있어요" : "매번 같은 확률 · 이미 만난 친구도 나와요")
                 .font(.system(size: 9)).foregroundStyle(Theme.soft)
                 .fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
         }

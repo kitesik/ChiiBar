@@ -28,8 +28,23 @@ enum SpriteArt {
                     width: entry.crop[2] - entry.crop[0], height: entry.crop[3] - entry.crop[1])) else { continue }
             result[entry.id] = strengthenInk(trimmed, character: entry.id)
         }
+        // One collectible made from four existing sprites. Keep each member's artwork intact.
+        if let party = pajamaParty(from: result) { result[FriendID.pajamaGreen.rawValue] = party }
         return result
     }()
+
+    private static func pajamaParty(from sprites: [String: CGImage]) -> CGImage? {
+        guard let context = CGContext(data: nil, width: 1000, height: 900, bitsPerComponent: 8,
+            bytesPerRow: 0, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        let positions: [(FriendID, CGFloat, CGFloat)] = [(.pajamaWhite, 270, 375), (.pajamaPurple, 700, 375), (.pajamaGreen, 240, 0), (.pajamaPink, 730, 0)]
+        for (friend, x, y) in positions {
+            guard let image = sprites[friend.rawValue] else { return nil }
+            let height: CGFloat = 510
+            let width = min(490, height * CGFloat(image.width) / CGFloat(image.height))
+            context.draw(image, in: CGRect(x: x - width / 2, y: y, width: width, height: height))
+        }
+        return context.makeImage()
+    }
 
     /// Draw the bundled pixels directly. A menu icon must not depend on SwiftUI
     /// rendering a Canvas before its view has ever joined a window hierarchy.
@@ -52,6 +67,7 @@ enum SpriteArt {
         guard let image = images[friend.rawValue] else { return nil }
         let crop: CGRect
         switch friend {
+        case .pajamaGreen: crop = CGRect(x: 0, y: 0, width: 1, height: 1)
         case .pochette, .labor: crop = CGRect(x: 0.22, y: 0, width: 0.58, height: 0.27)
         case .usagi: crop = CGRect(x: 0, y: 0.18, width: 1, height: 0.59)
         case .anoko: crop = CGRect(x: 0, y: 0, width: 0.84, height: 0.54)
@@ -170,7 +186,7 @@ enum SpriteArt {
         c.translateBy(x: base.x, y: base.y)
         c.rotate(by: .radians(pose.tilt))
         c.scaleBy(x: 1 + (1 - pose.squish) * 0.6, y: pose.squish)
-        let height = size * ((friend == .pochette || friend == .labor) ? 1.9 : friend == .usagi ? 1.65 : friend == .anoko ? 1.5 : 1.35)
+        let height = size * (friend == .pajamaGreen ? 1.65 : (friend == .pochette || friend == .labor) ? 1.9 : friend == .usagi ? 1.65 : friend == .anoko ? 1.5 : 1.35)
         let width = height * CGFloat(image.width) / CGFloat(image.height)
         var resolved = c.resolve(Image(decorative: image, scale: 1))
         if silhouette { resolved.shading = .color(.black) }
