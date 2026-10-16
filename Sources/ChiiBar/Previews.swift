@@ -28,6 +28,16 @@ enum Previews {
         }
         let sz = HouseArt.size
 
+        if ProcessInfo.processInfo.environment["CHIIBAR_STAMP_ONLY"] == "1" {
+            for (count, earned) in [(0, Int64(0)), (7, 13_193_379), (77, 243_000), (7777, Int64.max)] {
+                save("stamp_\(count)", CGSize(width: 320, height: 154), HStack(spacing: 14) {
+                    UpgradeBadge(count: count).frame(width: 112)
+                    DailyGoalCard(earned: earned)
+                }.padding(12).background(Theme.background))
+            }
+            return
+        }
+
         if ProcessInfo.processInfo.environment["CHIIBAR_PRESENTATION_ONLY"] == "1" {
             let model = fixtureModel(lastTokenAgo: 60)
             model.state.current = .kurimanju

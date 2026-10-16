@@ -15,10 +15,18 @@ struct DailyGoalCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Label(ratio >= 1 ? "오늘 목표 달성!" : "오늘의 경험치 목표", systemImage: ratio >= 1 ? "checkmark.seal.fill" : "sparkles")
-                .font(.system(size: 10, weight: .semibold))
-            Text("\(percent)%")
-                .font(.system(size: 26, weight: .bold, design: .rounded))
-                .minimumScaleFactor(0.6).lineLimit(1)
+                .font(.custom("AppleSDGothicNeo-Heavy", size: 10))
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                StampNumber(text: percent, size: 25,
+                            colors: [Ink.rgb(0xFFFFFF), Ink.rgb(0xBBDDEC)], ink: Ink.rgb(0x365E77))
+                    .minimumScaleFactor(0.25)
+                Text("%")
+                    .font(.system(size: 12, weight: .black, design: .rounded))
+                    .foregroundStyle(Ink.rgb(0x52788E))
+                    .fixedSize()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 2)
             ProgressTrack(fraction: min(1, ratio), sweepFrom: nil, fixedNow: .distantPast)
                 .accessibilityHidden(true)
             Text("\(amount) / \(Self.target / 10_000)만")
