@@ -20,7 +20,7 @@ struct UpgradeBadge: View {
                     .frame(width: 112, height: 108)
             }
             StampNumber(text: max(0, count).formatted(), size: 52,
-                        colors: [Ink.rgb(0x79533E), Ink.rgb(0x684530)], ink: Ink.rgb(0x624534))
+                        colors: [Ink.rgb(0x599FC5), Ink.rgb(0x397CA8)], ink: Ink.rgb(0x315F80))
                 .frame(width: 76, height: 54)
                 .offset(y: -5)
             Text("업그레이드")
