@@ -35,6 +35,7 @@ for number in $(seq 0 30); do
     asset=$(printf 'Art/StampNumbers/%02d.png' "$number")
     [[ -s "$asset" ]] || { echo "Missing illustrated number: $asset" >&2; exit 1; }
 done
+[[ -s Art/StampNumbers/badge-gold.png ]] || exit 1
 cp -R Art/StampNumbers "$app/Contents/Resources/StampNumbers"
 cat > "$app/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -46,8 +47,8 @@ cat > "$app/Contents/Info.plist" <<PLIST
     <key>CFBundleName</key><string>신분상승 토큰 치이카와</string>
     <key>CFBundleDisplayName</key><string>신분상승 토큰 치이카와</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.4.11</string>
-    <key>CFBundleVersion</key><string>39</string>
+    <key>CFBundleShortVersionString</key><string>0.4.12</string>
+    <key>CFBundleVersion</key><string>40</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>

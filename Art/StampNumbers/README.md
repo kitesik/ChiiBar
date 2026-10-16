@@ -8,3 +8,7 @@ Production numeral PNGs for the daily upgrade stamp, created with the built-in i
 - The renderer trims transparent margins only in memory, fits the illustration inside the stamp, and caches a maximum-192px display image. The saved PNGs remain intact.
 - Counts above 30 use the illustrated 0–9 digits. The saved count, progression rules, and accessibility labels remain numeric and unchanged.
 - Build packaging requires all 31 images; image accuracy and 1–30 layouts are visually reviewed in the number-stamps preview.
+
+## 금빛 업그레이드 배지 (0.4.12)
+
+`badge-gold.png`는 사용자가 제공한 금빛 다이아몬드·리본 배지를 참고해 내장 이미지 생성 도구로 새로 제작한 투명 배경 이미지입니다. 중앙 숫자는 기존 개별 숫자 이미지를 겹치고 리본의 ‘업그레이드’는 앱에서 표시합니다. 원본은 수정하지 않고 보관합니다. 제작 요청은 `badge-prompt.txt`에 기록했습니다.
