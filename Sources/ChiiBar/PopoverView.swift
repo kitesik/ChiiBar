@@ -395,6 +395,7 @@ struct ProgressTrack: View {
     var baseline: Double? = nil
     var animatesChanges = true
     var endpointElapsed: Double? = nil
+    var height: CGFloat = 13
     var body: some View {
         GeometryReader { g in
             ZStack(alignment: .leading) {
@@ -409,7 +410,7 @@ struct ProgressTrack: View {
                 }
             }
         }
-        .frame(height: 13)
+        .frame(height: height)
         .clipShape(Capsule())
         .overlay(Capsule().stroke(Theme.accent.opacity(0.6), lineWidth: 1.5))
         .overlay(alignment: .top) { Capsule().fill(.white.opacity(0.6)).frame(height: 2).padding(.horizontal, 5).padding(.top, 2).allowsHitTesting(false) }

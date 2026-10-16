@@ -5,6 +5,7 @@ import ChiiCore
 struct DailyGoalCard: View {
     static let target: Int64 = Tuning.dailyTarget
     let earned: Int64
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var ratio: Double { Double(max(0, earned)) / Double(Self.target) }
     private var percent: String { floor(ratio * 100).formatted(.number.precision(.fractionLength(0))) }
     private var amount: String {
@@ -18,18 +19,23 @@ struct DailyGoalCard: View {
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 10))
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, 4)
-            HStack(alignment: .bottom, spacing: 3) {
-                IllustratedNumber(count: Int(floor(ratio * 100)),
-                    width: min(108, CGFloat(String(Int(floor(ratio * 100))).count) * 24), height: 32)
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text(percent)
+                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(Ink.rgb(0x477CA0))
+                    .contentTransition(.numericText())
+                    .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: percent)
+                    .lineLimit(1).minimumScaleFactor(0.35)
                 Text("%")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
                     .foregroundStyle(Ink.rgb(0x776454))
-                    .padding(.bottom, 4)
                     .fixedSize()
             }
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.bottom, 2)
-            ProgressTrack(fraction: min(1, ratio), sweepFrom: nil, fixedNow: .distantPast)
+            ProgressTrack(fraction: min(1, ratio), sweepFrom: nil, fixedNow: .distantPast,
+                          animatesChanges: !reduceMotion, height: 17)
                 .accessibilityHidden(true)
             Text("\(amount) / \(Self.target / 10_000)만")
                 .font(.system(size: 9, weight: .medium))
