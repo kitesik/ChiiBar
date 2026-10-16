@@ -31,8 +31,6 @@ struct UpgradeBadge: View {
                     .offset(y: 31)
             }
             .frame(width: 112, height: 86)
-            Text(count > 0 ? "오늘도 한 뼘 성장!" : "오늘의 첫 성장을 향해")
-                .font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("오늘 업그레이드 \(count)번")
