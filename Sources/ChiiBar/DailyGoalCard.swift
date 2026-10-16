@@ -17,11 +17,11 @@ struct DailyGoalCard: View {
             Label(ratio >= 1 ? "오늘 목표 달성!" : "오늘의 경험치 목표", systemImage: ratio >= 1 ? "checkmark.seal.fill" : "sparkles")
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 10))
             HStack(alignment: .firstTextBaseline, spacing: 3) {
-                StampNumber(text: percent, size: 25,
-                            colors: [Ink.rgb(0xFFFFFF), Ink.rgb(0xBBDDEC)], ink: Ink.rgb(0x365E77))
+                StampNumber(text: percent, size: 24,
+                            colors: [Ink.rgb(0x3C6178), Ink.rgb(0x315469)], ink: .white)
                     .minimumScaleFactor(0.25)
                 Text("%")
-                    .font(.system(size: 12, weight: .black, design: .rounded))
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
                     .foregroundStyle(Ink.rgb(0x52788E))
                     .fixedSize()
             }
@@ -35,7 +35,7 @@ struct DailyGoalCard: View {
         }
         .foregroundStyle(Theme.actionText)
         .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-        .background(Ink.rgb(0xDCECF5), in: RoundedRectangle(cornerRadius: 12))
+        .background(LinearGradient(colors: [Ink.rgb(0xEDF5F7), Ink.rgb(0xDFEDF1)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 9).stroke(.white.opacity(0.85), lineWidth: 1).padding(4))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.accent.opacity(0.45), lineWidth: 1))
         .compositingGroup()
