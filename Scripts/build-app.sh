@@ -31,6 +31,11 @@ if [[ -d Art/Sprites ]]; then
     cp -R Art/Sprites/Manga "$app/Contents/Resources/Sprites/Manga"
 fi
 cp -R Art/Homes "$app/Contents/Resources/Homes"
+for number in $(seq 0 30); do
+    asset=$(printf 'Art/StampNumbers/%02d.png' "$number")
+    [[ -s "$asset" ]] || { echo "Missing illustrated number: $asset" >&2; exit 1; }
+done
+cp -R Art/StampNumbers "$app/Contents/Resources/StampNumbers"
 cat > "$app/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -41,8 +46,8 @@ cat > "$app/Contents/Info.plist" <<PLIST
     <key>CFBundleName</key><string>신분상승 토큰 치이카와</string>
     <key>CFBundleDisplayName</key><string>신분상승 토큰 치이카와</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.4.10</string>
-    <key>CFBundleVersion</key><string>38</string>
+    <key>CFBundleShortVersionString</key><string>0.4.11</string>
+    <key>CFBundleVersion</key><string>39</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>

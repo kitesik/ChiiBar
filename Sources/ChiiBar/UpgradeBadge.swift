@@ -15,18 +15,14 @@ struct UpgradeBadge: View {
                 .shadow(color: gold.opacity(0.2), radius: 0, y: 2)
             Circle().stroke(gold.opacity(0.65), style: StrokeStyle(lineWidth: 1, dash: [1, 3]))
                 .frame(width: 73, height: 73)
-            HStack(alignment: .firstTextBaseline, spacing: 2) {
-                StampNumber(text: "\(count)", size: count > 999 ? 23 : count > 99 ? 29 : 38,
-                            colors: [Ink.rgb(0x795D4B), Ink.rgb(0x654736)], ink: .white)
-                    .rotationEffect(.degrees(-4))
+            HStack(alignment: .bottom, spacing: 1) {
+                IllustratedNumber(count: count)
                 Text("번")
-                    .font(.custom("AppleSDGothicNeo-Heavy", size: 11))
+                    .font(.custom("AppleSDGothicNeo-Heavy", size: 10))
                     .foregroundStyle(Ink.rgb(0x815437))
-                    .rotationEffect(.degrees(0))
-                    .offset(y: -1)
+                    .padding(.bottom, 4)
             }
-            .frame(maxWidth: 82).minimumScaleFactor(0.6).lineLimit(1)
-            .offset(y: 3)
+            .offset(x: -1, y: 2)
             Text("업그레이드")
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 9))
                 .tracking(0.5)

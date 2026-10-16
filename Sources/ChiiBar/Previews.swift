@@ -28,6 +28,23 @@ enum Previews {
         }
         let sz = HouseArt.size
 
+        if ProcessInfo.processInfo.environment["CHIIBAR_NUMBER_SHEET"] == "1" {
+            save("number-stamps", CGSize(width: 720, height: 720), VStack(spacing: 0) {
+                ForEach(0..<6) { row in
+                    HStack(spacing: 0) {
+                        ForEach(0..<6) { column in
+                            let count = row * 6 + column
+                            VStack(spacing: 2) {
+                                UpgradeBadge(count: count)
+                                Text("\(count)").font(.system(size: 9)).foregroundStyle(.gray)
+                            }.frame(width: 120, height: 120)
+                        }
+                    }
+                }
+            }.background(Theme.background))
+            return
+        }
+
         if ProcessInfo.processInfo.environment["CHIIBAR_STAMP_ONLY"] == "1" {
             for (count, earned) in [(0, Int64(0)), (7, 13_193_379), (77, 243_000), (7777, Int64.max)] {
                 save("stamp_\(count)", CGSize(width: 320, height: 154), HStack(spacing: 14) {
