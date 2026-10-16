@@ -40,6 +40,21 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         }
     }
 
+    /// Japanese display names; カニ is displayed by its official name 古本屋.
+    public var japaneseName: String {
+        switch self {
+        case .chiikawa: "ちいかわ"
+        case .hachiware: "ハチワレ"
+        case .usagi: "うさぎ"
+        case .momonga: "モモンガ"
+        case .kurimanju: "くりまんじゅう"
+        case .rakko: "ラッコ"
+        case .shisa: "シーサー"
+        case .anoko: "あのこ"
+        case .kani: "古本屋"
+        }
+    }
+
     public var rarity: Int {
         switch self {
         case .usagi, .hachiware, .momonga: 3

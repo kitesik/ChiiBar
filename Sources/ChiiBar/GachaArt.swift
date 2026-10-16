@@ -18,6 +18,9 @@ enum GachaArt {
 
     /// `t == nil`: idle machine waiting for a draw.
     static func draw(_ ctx: C, canvas: CGSize, t: Double?, idleTime: Double, result: DrawResult?) {
+        if t != nil && result != nil {
+            ctx.fill(Path(CGRect(origin: .zero, size: canvas)), with: .color(Ink.rgb(0x312B40)))
+        }
         var c = ctx
         let k = min(canvas.width / size.width, canvas.height / size.height)
         c.translateBy(x: (canvas.width - size.width * k) / 2, y: (canvas.height - size.height * k) / 2)
@@ -56,7 +59,7 @@ enum GachaArt {
         if t >= 2.4 && t < revealAt { flash = (t - 2.4) / 0.35 }
         else if t >= revealAt && t < 3.25 { flash = 1 - (t - revealAt) / 0.5 }
         else { flash = 0 }
-        if flash > 0 { c.fill(Path(CGRect(origin: .zero, size: size)), with: .color(.white.opacity(flash))) }
+        if flash > 0 { ctx.fill(Path(CGRect(origin: .zero, size: canvas)), with: .color(.white.opacity(flash))) }
     }
 
     static func machine(_ c: C, handle: Double, jiggle: Double, shaking: Bool) {
@@ -143,8 +146,10 @@ enum GachaArt {
         }
         c.draw(Text(stars(result.friend.rarity)).font(.system(size: 20, weight: .bold)).foregroundColor(Ink.rgb(0xFFB800)),
                at: CGPoint(x: 160, y: 46))
-        c.draw(Text(result.friend.name).font(.system(size: 18, weight: .heavy, design: .rounded)).foregroundColor(.white),
+        c.draw(Text(result.friend.name).font(.custom("AppleSDGothicNeo-Heavy", size: 21)).foregroundColor(.white),
                at: CGPoint(x: 160, y: 72))
+        c.draw(Text(result.friend.japaneseName).font(.system(size: 11, weight: .semibold)).foregroundColor(Ink.rgb(0xD6C6DF)),
+               at: CGPoint(x: 160, y: 94))
         let line: String
         let detail: String
         switch result.outcome {

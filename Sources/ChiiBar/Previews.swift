@@ -28,6 +28,19 @@ enum Previews {
         }
         let sz = HouseArt.size
 
+        if ProcessInfo.processInfo.environment["CHIIBAR_PRESENTATION_ONLY"] == "1" {
+            let model = fixtureModel(lastTokenAgo: 60)
+            model.state.current = .kurimanju
+            model.state.houses[.kurimanju] = House(stage: 1, progress: 5000)
+            save("home", CGSize(width: 340, height: 640), PopoverView(model: model))
+            for elapsed in [1.0, 3.6, 5.2] {
+                let session = GachaSession(start: now.addingTimeInterval(-elapsed), result: DrawResult(friend: .kurimanju, outcome: .newFriend))
+                model.gacha = session
+                save("draw_\(elapsed)", CGSize(width: 340, height: 640), PopoverView(model: model))
+            }
+            return
+        }
+
         if ProcessInfo.processInfo.environment["CHIIBAR_GACHA_ONLY"] == "1" {
             let collection = fixtureModel(lastTokenAgo: 60)
             collection.tab = .friends

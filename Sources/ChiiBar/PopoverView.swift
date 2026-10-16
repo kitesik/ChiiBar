@@ -83,6 +83,8 @@ struct PopoverView: View {
                     FirstFriendWelcome(model: model)
                 } else { HomeView(model: model) }
             }
+            .allowsHitTesting(model.gacha == nil)
+            .accessibilityHidden(model.gacha != nil)
             if let g = model.gacha { GachaOverlay(model: model, session: g) }
             }
             if let demoModel {
@@ -175,8 +177,15 @@ struct FriendHeader: View {
     @ObservedObject var model: AppModel
     var body: some View {
         HStack {
-            Text(model.state.current?.name ?? "친구").font(.system(size: 14, weight: .bold, design: .rounded))
-            Spacer()
+            Text(model.state.current?.name ?? "친구")
+                .font(.custom("AppleSDGothicNeo-Heavy", size: 19))
+                .tracking(-0.5)
+                .foregroundStyle(Ink.rgb(0x51404E))
+                .shadow(color: .white, radius: 0, y: 1)
+            Spacer(minLength: 8)
+            Text(model.state.current?.japaneseName ?? "")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(Ink.rgb(0x857789))
         }.padding(.horizontal, 4)
     }
 }
@@ -234,7 +243,17 @@ struct StageProgress: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(label).font(.system(size: 12, weight: .bold))
+                if !model.building && !house.isComplete {
+                    Text("다음 집")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(Theme.soft)
+                    Text(HousePlan.pieceNames[house.stage])
+                        .font(.custom("AppleSDGothicNeo-Heavy", size: 14))
+                        .foregroundStyle(Ink.rgb(0x337D81))
+                } else {
+                    Text(label).font(.custom("AppleSDGothicNeo-Heavy", size: 14))
+                        .foregroundStyle(Ink.rgb(0x337D81))
+                }
                 Spacer()
             }
             Clock(fixed: model.fixedNow) { date in
@@ -554,23 +573,30 @@ struct GachaOverlay: View {
     @ObservedObject var model: AppModel
     let session: GachaSession
     var body: some View {
-        ZStack {
-            Theme.background
-            VStack(spacing: 18) {
-                Clock(fixed: model.fixedNow) { date in
-                    Canvas { ctx, size in
-                        GachaArt.draw(ctx, canvas: size, t: reduceMotion ? GachaArt.finishAt : date.timeIntervalSince(session.start),
-                                      idleTime: reduceMotion ? 0 : date.timeIntervalSinceReferenceDate, result: session.result)
-                    }
+        ZStack(alignment: .bottom) {
+            Clock(fixed: model.fixedNow) { date in
+                Canvas { ctx, size in
+                    GachaArt.draw(ctx, canvas: size, t: reduceMotion ? GachaArt.finishAt : date.timeIntervalSince(session.start),
+                                  idleTime: reduceMotion ? 0 : date.timeIntervalSinceReferenceDate, result: session.result)
                 }
-                .frame(width: 320, height: 300)
-                Clock(fixed: model.fixedNow) { date in
-                    let ready = reduceMotion || date.timeIntervalSince(session.start) >= GachaArt.finishAt
-                    Button(ready ? "집으로" : "친구를 만나는 중…") { model.finishGacha(reducedMotion: reduceMotion) }
-                        .buttonStyle(PrimaryActionStyle()).disabled(!ready)
+                .accessibilityLabel(date.timeIntervalSince(session.start) >= GachaArt.revealAt || reduceMotion
+                    ? "\(session.result.friend.name), \(session.result.friend.japaneseName)" : "친구 뽑기")
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Clock(fixed: model.fixedNow) { date in
+                let ready = reduceMotion || date.timeIntervalSince(session.start) >= GachaArt.finishAt
+                if ready {
+                    Button { model.finishGacha(reducedMotion: reduceMotion) } label: {
+                        Label("집으로", systemImage: "house.fill")
+                            .frame(width: 200, height: 24)
+                    }
+                    .buttonStyle(PrimaryActionStyle())
+                    .padding(.bottom, 44)
                 }
             }
-            .padding(.top, 20)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Ink.rgb(0x312B40))
+        .contentShape(Rectangle())
     }
 }
