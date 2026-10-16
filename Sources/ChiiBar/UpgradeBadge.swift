@@ -1,13 +1,13 @@
 import AppKit
 import SwiftUI
 
-/// A gold reward medal, with illustrated counts and a readable ribbon label.
+/// A hand-drawn pastel reward badge, with illustrated counts and a readable ribbon label.
 struct UpgradeBadge: View {
     let count: Int
     private static let artwork: NSImage? = {
         let root = ProcessInfo.processInfo.environment["CHIIBAR_NUMBERS"].map { URL(fileURLWithPath: $0) }
             ?? (Bundle.main.resourceURL ?? Bundle.main.bundleURL).appendingPathComponent("StampNumbers")
-        return NSImage(contentsOf: root.appendingPathComponent("badge-gold.png"))
+        return NSImage(contentsOf: root.appendingPathComponent("badge-pastel.png"))
     }()
 
     var body: some View {
@@ -24,7 +24,7 @@ struct UpgradeBadge: View {
             Text("업그레이드")
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 9))
                 .tracking(0.15)
-                .foregroundStyle(Ink.rgb(0x81501B))
+                .foregroundStyle(Ink.rgb(0x66594E))
                 .shadow(color: Ink.rgb(0xFFF2A0), radius: 0, y: 0.5)
                 .offset(y: 24)
         }
