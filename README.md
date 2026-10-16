@@ -3,6 +3,12 @@
 Claude Code와 Codex를 쓰는 동안, 치이카와 친구가 토큰을 먹고 비박부터 초고층 빌딩 펜트하우스까지 집을 지어 가는 macOS 팬 앱입니다.
 토큰이 쌓여 게이지가 가득 차면 업그레이드 버튼을 눌러 한 단계씩 이사합니다. 남은 경험치는 새 집에서 이어 채워집니다.
 
+[![Mac용 다운로드](docs/download-mac.svg)](https://github.com/kitesik/ChiiBar/releases/download/v0.4.24/ChiiBar-0.4.24-universal.zip)
+
+macOS 14 이상 · Apple Silicon / Intel 공용 · 무료
+
+[설치 방법과 첫 실행 안내](#설치) · [릴리스 보기](https://github.com/kitesik/ChiiBar/releases/latest)
+
 **v0.4.24 — 파자마파티즈를 한 팀으로, 총 10종의 친구.**
 
 현재 집과 친구를 이전보다 130% 크게 표시합니다. 오늘의 대시보드는 제목·날짜 헤더, 업그레이드 횟수와 목표 달성률의 두 영역, 갈색 외곽선으로 묶었습니다. 업그레이드 버튼이 나타나도 하단이 잘리지 않도록 창 높이를 조정했습니다.
@@ -11,8 +17,6 @@ Claude Code와 Codex를 쓰는 동안, 치이카와 친구가 토큰을 먹고 �
 
 대시보드의 업그레이드 횟수와 달성률은 손글씨 느낌의 실제 텍스트로 표시합니다. 횟수는 하늘색 배지와 어울리는 블루, 달성률은 파란색으로 구분하고 자간을 좁혔습니다. 천 단위 쉼표를 유지하며 기존 숫자 이미지 0~30은 삭제하지 않고 보관합니다.
 별도 가입이나 API 키 없이, Mac에 남는 Codex·Claude Code 사용 기록으로 자랍니다. 앱 자체는 무료이며 AI 서비스 이용료는 별도입니다.
-
-**[최신 버전 다운로드](https://github.com/kitesik/ChiiBar/releases/latest)**
 
 ## 설치
 
@@ -23,7 +27,7 @@ Claude Code와 Codex를 쓰는 동안, 치이카와 친구가 토큰을 먹고 �
 
 ### 터미널 없이 직접 설치
 
-1. **[다운로드 페이지 열기](https://github.com/kitesik/ChiiBar/releases/latest)** → Assets에서 `ChiiBar-0.4.24-universal.zip`을 선택합니다. `Source code` 파일은 설치 파일이 아닙니다.
+1. **[Mac용 다운로드](https://github.com/kitesik/ChiiBar/releases/download/v0.4.24/ChiiBar-0.4.24-universal.zip)**를 누르면 설치 ZIP 파일을 바로 받습니다.
 2. 다운로드한 ZIP을 두 번 클릭해 압축을 풉니다.
 3. `ChiiBar.app`을 Finder의 **응용 프로그램** 폴더로 옮깁니다. 기본 설치 위치는 `/Applications/ChiiBar.app`입니다.
 4. 응용 프로그램에서 **ChiiBar**를 실행합니다. 이 앱은 Dock에 창을 띄우는 대신 **화면 맨 위 메뉴 막대**에 작은 아이콘이 생깁니다. 아이콘을 눌러 **첫 친구 뽑기**를 시작하세요.
