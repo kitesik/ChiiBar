@@ -28,17 +28,140 @@ enum Previews {
         }
         let sz = HouseArt.size
 
-        for stage in 1...12 {
+        if ProcessInfo.processInfo.environment["CHIIBAR_GACHA_ONLY"] == "1" {
+            let collection = fixtureModel(lastTokenAgo: 60)
+            collection.tab = .friends
+            save("friends_title", CGSize(width: 340, height: 640), PopoverView(model: collection))
+            for (index, t) in [0.2, 1.0, 1.8, 3.6].enumerated() {
+                save("gacha_refined_\(index)", GachaArt.size,
+                     GachaCanvas(t: t, result: DrawResult(friend: .usagi, outcome: .newFriend)))
+            }
+            for friend in FriendID.allCases {
+                save("hidden_result_\(friend.rawValue)", GachaArt.size,
+                     GachaCanvas(t: 1.1, result: DrawResult(friend: friend, outcome: .newFriend)))
+            }
+            save("gacha_duplicate_clear", GachaArt.size,
+                 GachaCanvas(t: 4, result: DrawResult(friend: .shisa, outcome: .gift(stage: 5))))
+            return
+        }
+
+        if ProcessInfo.processInfo.environment["CHIIBAR_UPGRADE_ONLY"] == "1" {
+            for elapsed in [0.0, 0.9, 1.2, 2.0, 2.5, 2.8] {
+                save("manual_surplus_\(Int(elapsed * 10))", CGSize(width: 320, height: 120),
+                    StageProgress(model: carryoverModel(elapsed: elapsed)).padding(8).background(Theme.background))
+            }
+            let ready = fixtureModel(lastTokenAgo: 60)
+            ready.state.houses[.hachiware] = House(stage: 2, progress: HousePlan.cost(ofStage: 3) + HousePlan.cost(ofStage: 4) / 2)
+            save("manual_ready", CGSize(width: 340, height: 640), PopoverView(model: ready))
+            let celebration = fixtureModel(lastTokenAgo: 60)
+            celebration.state.houses[.hachiware] = House(stage: 3, progress: 2_000_000)
+            celebration.reveal = (3, now.addingTimeInterval(-3.7))
+            celebration.upgradeNotice = ("벽돌집 입주!", now.addingTimeInterval(-0.7))
+            save("joyful_complete", CGSize(width: 340, height: 640), PopoverView(model: celebration))
+            save("carryover_notice", CGSize(width: 340, height: 640), PopoverView(model: carryoverModel(elapsed: 2.2)))
+            renderCarryover(to: out)
+            renderAssembly(to: out)
+            for e in [0.5, 1.2, 1.8, 2.5, 3.0] {
+                var p = SceneParams(friend: .chiikawa, stage: 3, activity: .tea, t: 100 + e)
+                p.previousStage = 2; p.reveal = (3, e)
+                save("soft_build_\(Int(e * 10))", sz, scene(p))
+            }
+            return
+        }
+
+        if ProcessInfo.processInfo.environment["CHIIBAR_MANGA_ONLY"] == "1" {
+            save("manga_expressions", CGSize(width: 720, height: 660), Canvas { ctx, _ in
+                let entries = FriendID.allCases.flatMap { f in MangaExpression.allowed(for: f).map { (f, $0) } }
+                for (i, item) in entries.enumerated() {
+                    let x = CGFloat(i % 4) * 180 + 90, y = CGFloat(i / 4) * 220 + 170
+                    var pose = Pose(); pose.mangaExpression = item.1
+                    FriendArt.draw(ctx, item.0, base: CGPoint(x: x, y: y), size: 85, pose: pose)
+                    ctx.draw(Text(item.0.name + " · " + item.1.rawValue).font(.system(size: 12)).foregroundColor(.black), at: CGPoint(x: x, y: y + 24))
+                }
+            }.background(Color.white))
+            for (i, f) in FriendID.allCases.enumerated() {
+                save("manga_room_\(i)", sz, scene(SceneParams(friend: f, stage: 3, activity: .tea, t: 1)))
+            }
+            for e in [0.0, 0.5, 1.2, 2.1, 2.7, 3.1] {
+                var p = SceneParams(friend: .chiikawa, stage: 3, activity: .tea, t: 100 + e)
+                p.previousStage = 2; p.reveal = (3, e)
+                save("assembly_\(Int(e * 10))", sz, scene(p))
+            }
+            renderAssembly(to: out)
+            return
+        }
+
+        for stage in 1...HousePlan.lastStage {
             save(String(format: "stage_%02d", stage), sz,
                  scene(SceneParams(friend: .hachiware, stage: stage, activity: .tea, t: t0)))
+        }
+        for progress in [0.0, 0.25, 0.5, 0.75, 0.99] {
+            var p = SceneParams(friend: .chiikawa, stage: 2, activity: .tea, t: t0)
+            p.constructionProgress = progress
+            save("building_\(Int(progress * 100))", sz, scene(p))
+        }
+        save("journey_sheet", CGSize(width: 960, height: 1050),
+             VStack(spacing: 0) {
+                 ForEach(0..<5) { row in
+                     HStack(spacing: 0) {
+                         ForEach(0..<3) { col in
+                             let stage = row * 3 + col + 1
+                             if stage <= HousePlan.lastStage {
+                                 scene(SceneParams(friend: .chiikawa, stage: stage, activity: .tea, t: t0))
+                                     .frame(width: 320, height: 210)
+                             } else { Color.clear.frame(width: 320, height: 210) }
+                         }
+                     }
+                 }
+             })
+        if ProcessInfo.processInfo.environment["CHIIBAR_HOMES_ONLY"] == "1" {
+            renderHomeWalk(to: out)
+            return
         }
         save("ending", sz, scene(SceneParams(friend: .hachiware, stage: 12, activity: .tea, t: t0,
                                              endingElapsed: 1.6, bubble: FriendID.hachiware.dialogue(for: .completed))))
         for f in FriendID.allCases {
             save("character_\(f.rawValue)", sz, scene(SceneParams(friend: f, stage: 12, activity: .tea, t: t0)))
         }
+        save("chiikawa_corrected", CGSize(width: 420, height: 320),
+             Canvas { ctx, _ in
+                 ctx.fill(Path(CGRect(x: 0, y: 0, width: 420, height: 320)), with: .color(Ink.rgb(0xFFF9EF)))
+                 FriendArt.draw(ctx, .chiikawa, base: CGPoint(x: 210, y: 285), size: 215, pose: Pose())
+             })
+        var corrected = SceneParams(friend: .chiikawa, stage: 4, activity: .tea, t: t0)
+        corrected.constructionProgress = 0.35
+        save("chiikawa_home_corrected", sz, scene(corrected))
         save("character_sheet", CGSize(width: CGFloat(FriendID.allCases.count) * 100, height: 150), CharacterSheet())
         save("menu_faces", CGSize(width: CGFloat(FriendID.allCases.count) * 30, height: 30), MenuFaceSheet())
+        save("all_friends_corrected", CGSize(width: 720, height: 660), Canvas { ctx, _ in
+            ctx.fill(Path(CGRect(x: 0, y: 0, width: 720, height: 660)), with: .color(Ink.rgb(0xFFF9EF)))
+            for (i, friend) in FriendID.allCases.enumerated() {
+                let x = CGFloat(i % 3) * 240 + 120
+                let y = CGFloat(i / 3) * 220
+                FriendArt.draw(ctx, friend, base: CGPoint(x: x, y: y + 190), size: 110, pose: Pose())
+                ctx.draw(Text(friend.name).font(.system(size: 16)).foregroundColor(Theme.text), at: CGPoint(x: x, y: y + 208))
+            }
+        })
+        save("all_friend_expressions", CGSize(width: 600, height: 1800), Canvas { ctx, _ in
+            ctx.fill(Path(CGRect(x: 0, y: 0, width: 600, height: 1800)), with: .color(Ink.rgb(0xFFF9EF)))
+            for (i, friend) in FriendID.allCases.enumerated() {
+                for col in 0..<3 {
+                    var pose = Pose()
+                    if col == 1 { pose.eyes = .closed }
+                    if col == 2 { pose.eyes = .happy; pose.arms = .up }
+                    FriendArt.draw(ctx, friend, base: CGPoint(x: CGFloat(col) * 200 + 100, y: CGFloat(i) * 200 + 170), size: 95, pose: pose)
+                }
+                ctx.draw(Text(friend.name).font(.system(size: 14)).foregroundColor(Theme.text), at: CGPoint(x: 300, y: CGFloat(i) * 200 + 188))
+            }
+        })
+        let demo = AppModel.demo()
+        save("demo_home", CGSize(width: 340, height: 640), PopoverView(model: demo))
+        var pet = SceneParams(friend: .hachiware, stage: 6, activity: .tea, t: t0)
+        pet.pokeElapsed = 0.45
+        pet.bubble = "에헤헤!"
+        save("pet_response", sz, scene(pet))
+        renderPolishedMotion(to: out)
+        renderJourney(to: out)
         renderHero(to: out)
         renderMotion(to: out)
         renderConstruction(to: out)
@@ -64,7 +187,7 @@ enum Previews {
         }
         save("gacha_again", GachaArt.size, GachaCanvas(t: 3.6, result: DrawResult(friend: .shisa, outcome: .gift(stage: 5))))
 
-        let popSize = CGSize(width: 340, height: 560)
+        let popSize = CGSize(width: 340, height: 640)
         for (name, ago) in [("busy", 60.0), ("idle", 600.0), ("sleeping", 3600.0)] {
             save("popover_\(name)", popSize, PopoverView(model: fixtureModel(lastTokenAgo: ago)))
         }
@@ -110,11 +233,79 @@ enum Previews {
 
     static func carryoverModel(elapsed: Double) -> AppModel {
         let template = fixtureModel(lastTokenAgo: 60)
-        template.state.houses[.hachiware] = House(stage: 7, progress: 11_000_000)
+        template.state.houses[.hachiware] = House(stage: 3, progress: HousePlan.cost(ofStage: 4) / 2)
         let model = AppModel(state: template.state, stateURL: nil, fixedNow: now.addingTimeInterval(elapsed))
-        model.carryover = UpgradeCarryover(friend: .hachiware, stage: 7, amount: 11_000_000,
+        model.carryover = UpgradeCarryover(friend: .hachiware, stage: 3, amount: HousePlan.cost(ofStage: 4) / 2,
                                           startsAt: now.addingTimeInterval(0.6))
         return model
+    }
+
+    static func renderPolishedMotion(to out: URL) {
+        let url = out.appendingPathComponent("polished_motion.gif")
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 120, nil) else { return }
+        CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
+        for frame in 0..<120 {
+            let time = Double(frame) / 24
+            var p = SceneParams(friend: .hachiware, stage: time < 3.8 ? 3 : 4, activity: .tea, t: t0 + time)
+            p.arrivalElapsed = time
+            p.constructionProgress = time < 3.8 ? ArrivalMotion.ease(time / 3.8) : 0
+            if time >= 2 && time < 3.5 { p.pokeElapsed = time - 2; p.bubble = "에헤헤!" }
+            if time >= 3.8 { p.reveal = (4, time - 3.8); p.previousStage = 3 }
+            let params = p
+            let renderer = ImageRenderer(content: Canvas { ctx, size in HouseArt.draw(ctx, canvas: size, params) }.frame(width: 320, height: 210))
+            renderer.scale = 2
+            guard let image = renderer.cgImage else { fatalError("motion render failed") }
+            CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 24]] as CFDictionary)
+        }
+        precondition(CGImageDestinationFinalize(destination))
+    }
+
+    static func renderAssembly(to out: URL) {
+        let url = out.appendingPathComponent("assembly.gif")
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 60, nil) else { return }
+        CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
+        for frame in 0..<60 {
+            let elapsed = Double(frame) / 12
+            var params = SceneParams(friend: .chiikawa, stage: 3, activity: .tea, t: 100 + elapsed)
+            params.previousStage = 2; params.reveal = (3, elapsed)
+            let renderer = ImageRenderer(content: Canvas { ctx, size in HouseArt.draw(ctx, canvas: size, params) }.frame(width: 320, height: 210))
+            renderer.scale = 2
+            guard let image = renderer.cgImage else { fatalError("assembly frame failed") }
+            CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 12]] as CFDictionary)
+        }
+        precondition(CGImageDestinationFinalize(destination))
+    }
+
+    static func renderHomeWalk(to out: URL) {
+        let url = out.appendingPathComponent("home_walk.gif")
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 144, nil) else { return }
+        CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
+        for frame in 0..<144 {
+            let params = SceneParams(friend: .chiikawa, stage: 13, activity: .tea, t: Double(frame) / 6)
+            let renderer = ImageRenderer(content: Canvas { ctx, size in HouseArt.draw(ctx, canvas: size, params) }.frame(width: 320, height: 210))
+            renderer.scale = 2
+            guard let image = renderer.cgImage else { fatalError("walk frame failed") }
+            CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 6]] as CFDictionary)
+        }
+        precondition(CGImageDestinationFinalize(destination))
+    }
+
+    static func renderJourney(to out: URL) {
+        let url = out.appendingPathComponent("home_pop.gif")
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, "com.compuserve.gif" as CFString, 60, nil) else { return }
+        CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
+        let arrival = (0..<2000).map { t0 + Double($0) / 100 }.first { ArrivalMotion.scale(at: $0, friend: .chiikawa) < 0.88 } ?? t0
+        for frame in 0..<60 {
+            var p = SceneParams(friend: .chiikawa, stage: frame < 48 ? 2 : 3, activity: .tea, t: arrival - 0.3 + Double(frame) / 12)
+            p.constructionProgress = frame < 48 ? Double(frame) / 48 : 0
+            if frame >= 48 { p.reveal = (3, Double(frame - 48) / 12); p.previousStage = 2 }
+            let params = p
+            let view = Canvas { ctx, size in HouseArt.draw(ctx, canvas: size, params) }.frame(width: 320, height: 210)
+            let renderer = ImageRenderer(content: view); renderer.scale = 2
+            guard let image = renderer.cgImage else { fatalError("journey frame failed") }
+            CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 12]] as CFDictionary)
+        }
+        precondition(CGImageDestinationFinalize(destination))
     }
 
     static func renderCarryover(to out: URL) {

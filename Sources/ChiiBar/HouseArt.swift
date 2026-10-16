@@ -12,6 +12,12 @@ struct SceneParams {
     var pokeElapsed: Double?
     var bubble: String?
     var snackIsPudding = false
+    var constructionProgress: Double = 0
+    var reduceMotion = false
+    var arrivalElapsed: Double?
+    var previousStage: Int?
+    var previousFraction: Double?
+    var progressElapsed: Double?
 }
 
 /// Doll-house cross-section drawn in a 320 x 210 space, scaled to fit.
@@ -38,29 +44,7 @@ enum HouseArt {
         c.scaleBy(x: k, y: k)
         c.clip(to: rect(0, 0, size.width, size.height, r: 14))
 
-        sky(c, p)
-        grass(c, p.t)
-        let has = { (stage: Int) in p.stage >= stage }
-        if has(3) { piece(c, p, 3) { walls($0, roofed: has(4)) } }
-        if has(9) { lampGlow(c) }
-        if has(8) { piece(c, p, 8, anchor: (135, 88)) { window($0, t: p.t) } }
-        if has(12) { piece(c, p, 12, anchor: (200, 80)) { frameAndGarland($0) } }
-        if has(4) { piece(c, p, 4, anchor: (160, 40)) { roof($0) } }
-        if has(2) { piece(c, p, 2, anchor: (160, 155)) { floor($0) } }
-        if has(10) { piece(c, p, 10, anchor: (252, 120)) { kitchen($0, steaming: p.activity == .cooking, t: p.t) } }
-        if has(11) { piece(c, p, 11, anchor: (150, 130)) { plantAndBooks($0) } }
-        if has(9) { piece(c, p, 9, anchor: (66, 112)) { lamp($0) } }
-        if has(7) { piece(c, p, 7, anchor: (84, 150)) { futon($0) } }
-        if has(5) { piece(c, p, 5, anchor: (160, 151)) { cushion($0) } }
-        if has(6) { piece(c, p, 6, anchor: (226, 144)) { table($0, pudding: p.activity == .snack && p.snackIsPudding) } }
-
-        if let r = p.reveal, r.elapsed < 2.4 {
-            construction(c, p, elapsed: r.elapsed)
-        } else { ActivityArt.draw(c, p) }
-        if p.stage >= HousePlan.lastStage && (p.reveal == nil || p.reveal!.elapsed >= 2.4) { badge(c) }
-        if let r = p.reveal { sparkles(c, around: anchor(of: r.stage), elapsed: r.elapsed - 2.4) }
-        if let e = p.endingElapsed { Effects.confetti(c, elapsed: e) }
-        if let b = p.bubble { Effects.bubble(c, text: b, near: ActivityArt.headPoint(p)) }
+        HousingJourney.draw(c, p)
     }
 
     static func anchor(of stage: Int) -> CGPoint {

@@ -1,0 +1,242 @@
+[
+  {
+    "id": "usagi",
+    "friend": "usagi",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1263457541037555715",
+    "panel": "Usagi, yellow long eared rabbit in the upper RIGHT panel: open oval black eyes with tiny white glints, long curved eyebrows, tiny closed double-curved w mouth and tiny mark beneath. Small arms out, little feet. NO closed crescent happy eyes, NO big grin, NO teeth, NO big tongue. Preserve his peculiar face.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Usagi, yellow long eared rabbit in the upper RIGHT panel: open oval black eyes with tiny white glints, long curved eyebrows, tiny closed double-curved w mouth and tiny mark beneath. Small arms out, little feet. NO closed crescent happy eyes, NO big grin, NO teeth, NO big tongue. Preserve his peculiar face.",
+    "correction": null,
+    "crop": [
+      281,
+      123,
+      995,
+      1124
+    ],
+    "size": [
+      1243,
+      1266
+    ],
+    "asset": "usagi.png"
+  },
+  {
+    "id": "chiikawa",
+    "friend": "chiikawa",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1388801445139386372",
+    "panel": "Chiikawa the white round bear in the bottom LEFT panel foreground: worried short sloping eyebrows, open oval eyes with white glints, tiny closed double-curved mouth, small round hands by sides, little feet. No tears for this baseline.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Chiikawa the white round bear in the bottom LEFT panel foreground: worried short sloping eyebrows, open oval eyes with white glints, tiny closed double-curved mouth, small round hands by sides, little feet. No tears for this baseline.",
+    "correction": null,
+    "crop": [
+      221,
+      255,
+      1021,
+      1146
+    ],
+    "size": [
+      1247,
+      1261
+    ],
+    "asset": "chiikawa.png"
+  },
+  {
+    "id": "hachiware",
+    "friend": "hachiware",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1263457541037555715",
+    "panel": "Hachiware white cat with blue cap ears and blue tail, in the left panel immediately below upper left: wide oval glint eyes, tiny w mouth, short brow dashes, small hand raised beside cheek. Keep exactly this mild attentive expression, not an invented smile.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Hachiware white cat with blue cap ears and blue tail, in the left panel immediately below upper left: wide oval glint eyes, tiny w mouth, short brow dashes, small hand raised beside cheek. Keep exactly this mild attentive expression, not an invented smile.",
+    "correction": null,
+    "crop": [
+      209,
+      236,
+      1020,
+      1151
+    ],
+    "size": [
+      1227,
+      1282
+    ],
+    "asset": "hachiware.png"
+  },
+  {
+    "id": "momonga",
+    "friend": "momonga",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1617551194020511745",
+    "panel": "Momonga white flying squirrel in middle LEFT panel: sleepy horizontal oval glint eyes, tiny w mouth, pale blue round nose, short brows, hands on hips, big fluffy pale blue tail. Use his natural round ears instead of the removable red crab headband. Do not change his face into a generic adorable baby face.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Momonga white flying squirrel in middle LEFT panel: sleepy horizontal oval glint eyes, tiny w mouth, pale blue round nose, short brows, hands on hips, big fluffy pale blue tail. Use his natural round ears instead of the removable red crab headband. Do not change his face into a generic adorable baby face.",
+    "correction": null,
+    "crop": [
+      224,
+      212,
+      1189,
+      1068
+    ],
+    "size": [
+      1350,
+      1165
+    ],
+    "asset": "momonga.png"
+  },
+  {
+    "id": "kurimanju",
+    "friend": "kurimanju",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1444696304060284931",
+    "panel": "Kurimanju beige chestnut capped round character in upper RIGHT panel: tiny open round eyes with white glint, tiny double curved closed mouth, no eyebrows, pink hatched cheeks, one hand holding small plain cup. Use this calm expression, do not give him generic happy eyes. Full body little feet.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Kurimanju beige chestnut capped round character in upper RIGHT panel: tiny open round eyes with white glint, tiny double curved closed mouth, no eyebrows, pink hatched cheeks, one hand holding small plain cup. Use this calm expression, do not give him generic happy eyes. Full body little feet.",
+    "correction": null,
+    "crop": [
+      261,
+      281,
+      980,
+      1083
+    ],
+    "size": [
+      1244,
+      1264
+    ],
+    "asset": "kurimanju.png"
+  },
+  {
+    "id": "rakko",
+    "friend": "rakko",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1361312821191995393",
+    "panel": "Rakko tan furry otter in upper RIGHT panel: stern slightly slanted horizontal oval eyes with white glints, small tiny closed w mouth, facial fur marks, star scar above viewer-left eye, dark ears feet and hands, white scarf cape, sheathed sword behind shoulder. Keep tiny composed face, no cute generic smile.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Rakko tan furry otter in upper RIGHT panel: stern slightly slanted horizontal oval eyes with white glints, small tiny closed w mouth, facial fur marks, star scar above viewer-left eye, dark ears feet and hands, white scarf cape, sheathed sword behind shoulder. Keep tiny composed face, no cute generic smile.",
+    "correction": null,
+    "crop": [
+      122,
+      163,
+      1097,
+      1135
+    ],
+    "size": [
+      1220,
+      1289
+    ],
+    "asset": "rakko.png"
+  },
+  {
+    "id": "shisa",
+    "friend": "shisa",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1444696304060284931",
+    "panel": "Shisa small pale yellow orange-maned lion dog in bottom LEFT panel: closed short upward arch eyes under orange curled eyebrows, tiny closed double curved w mouth, pink cheeks with small hatch marks, orange side curls and curled tail, short round ears, arms by sides and tiny feet. Exactly the quiet pleased expression from this panel; no large open mouth.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Shisa small pale yellow orange-maned lion dog in bottom LEFT panel: closed short upward arch eyes under orange curled eyebrows, tiny closed double curved w mouth, pink cheeks with small hatch marks, orange side curls and curled tail, short round ears, arms by sides and tiny feet. Exactly the quiet pleased expression from this panel; no large open mouth.",
+    "correction": "Use case: precise-object-edit. Image 1 is the edit target, image 2 the source expression reference. Change ONLY the mouth of the isolated character in image 1. The generated open lower U loop is WRONG. Remove that open U loop entirely: mouth must be a tiny CLOSED double-curved w upper lip with only a tiny separated dash/dot below, matching Shisa at bottom LEFT in image 2. No open mouth, no tongue, no oval or U below the lip. Keep every other pixel-level design feature, eyes, colors, proportions, pose and transparent background unchanged.",
+    "crop": [
+      125,
+      205,
+      1090,
+      1082
+    ],
+    "size": [
+      1223,
+      1286
+    ],
+    "asset": "shisa.png"
+  },
+  {
+    "id": "anoko",
+    "friend": "anoko",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1587583458791997442",
+    "panel": "Anoko large white fluffy creature in middle RIGHT panel lower pose: closed short arch eyes, tiny double curved closed w mouth, little orange forehead horn, pink cheeks, fluffy white chest bib, beige lower body, orange claws on TWO hands raised in front, orange toe claws, green long tail with white segmented underside. This exact contented dancing pose. No extra limbs or other creatures.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Anoko large white fluffy creature in middle RIGHT panel lower pose: closed short arch eyes, tiny double curved closed w mouth, little orange forehead horn, pink cheeks, fluffy white chest bib, beige lower body, orange claws on TWO hands raised in front, orange toe claws, green long tail with white segmented underside. This exact contented dancing pose. No extra limbs or other creatures.",
+    "correction": "Use case: precise-object-edit. Image 1 is the edit target, image 2 the source expression reference. Change ONLY the mouth of the isolated character in image 1. The generated open lower U loop is WRONG. Remove that open U loop entirely: mouth must be a tiny CLOSED double-curved w upper lip with only a tiny separated dash/dot below, matching Anoko in middle RIGHT lower dancing pose in image 2. No open mouth, no tongue, no oval or U below the lip. Keep every other pixel-level design feature, eyes, colors, proportions, pose and transparent background unchanged.",
+    "crop": [
+      178,
+      134,
+      1110,
+      1179
+    ],
+    "size": [
+      1230,
+      1278
+    ],
+    "asset": "anoko.png"
+  },
+  {
+    "id": "kani",
+    "friend": "kani",
+    "expression": "base",
+    "source": "https://x.com/ngnchiikawa/status/1617907297656909824",
+    "panel": "Kani / Furuhonya pink round crab character in upper RIGHT panel: open horizontal oval eyes with white glints, tiny closed w mouth with tiny chin mark, two very short eyebrow dashes, round pale pink body darker pink cap band and two red-pink crab-claw-shaped head antennae, little arms at sides, little feet. Preserve exact gentle quiet expression, no invented grin.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Kani / Furuhonya pink round crab character in upper RIGHT panel: open horizontal oval eyes with white glints, tiny closed w mouth with tiny chin mark, two very short eyebrow dashes, round pale pink body darker pink cap band and two red-pink crab-claw-shaped head antennae, little arms at sides, little feet. Preserve exact gentle quiet expression, no invented grin.",
+    "correction": null,
+    "crop": [
+      284,
+      261,
+      943,
+      1066
+    ],
+    "size": [
+      1227,
+      1282
+    ],
+    "asset": "kani.png"
+  },
+  {
+    "id": "chiikawa-cry",
+    "friend": "chiikawa",
+    "expression": "cry",
+    "source": "https://x.com/ngnchiikawa/status/1388801445139386372",
+    "panel": "Chiikawa ONLY, from the TOP LEFT closeup panel: two short drooping closed eyelids with a narrow tear stream under EACH eye, sad sloping short eyebrows, small open rounded U mouth joined to little double-curve upper lip, pink cheeks. Redraw as full body white round Chiikawa, just TWO little hands close in front, two little feet. No weapon, no extra arms, no huge shiny eye balls, no big blue teardrops. Exactly the tearful expression from that panel.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Chiikawa ONLY, from the TOP LEFT closeup panel: two short drooping closed eyelids with a narrow tear stream under EACH eye, sad sloping short eyebrows, small open rounded U mouth joined to little double-curve upper lip, pink cheeks. Redraw as full body white round Chiikawa, just TWO little hands close in front, two little feet. No weapon, no extra arms, no huge shiny eye balls, no big blue teardrops. Exactly the tearful expression from that panel.",
+    "correction": null,
+    "crop": [
+      231,
+      288,
+      991,
+      1125
+    ],
+    "size": [
+      1222,
+      1287
+    ],
+    "asset": "chiikawa-cry.png"
+  },
+  {
+    "id": "chiikawa-relief",
+    "friend": "chiikawa",
+    "expression": "relief",
+    "source": "https://x.com/ngnchiikawa/status/1263457541037555715",
+    "panel": "Chiikawa white round bear, face from left panel immediately under top-left: tiny CLOSED nearly horizontal arched eyes, two very short horizontal brow dashes well above eyes, tiny CLOSED w mouth with little dot/mark below, pink oval cheeks. Full body with tiny hands relaxed at sides and two tiny feet. Do not open the mouth or draw a tongue. Keep eyes and mouth very small relative to face, like the manga.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Chiikawa white round bear, face from left panel immediately under top-left: tiny CLOSED nearly horizontal arched eyes, two very short horizontal brow dashes well above eyes, tiny CLOSED w mouth with little dot/mark below, pink oval cheeks. Full body with tiny hands relaxed at sides and two tiny feet. Do not open the mouth or draw a tongue. Keep eyes and mouth very small relative to face, like the manga.",
+    "correction": null,
+    "crop": [
+      140,
+      197,
+      1081,
+      1195
+    ],
+    "size": [
+      1230,
+      1278
+    ],
+    "asset": "chiikawa-relief.png"
+  },
+  {
+    "id": "hachiware-greeting",
+    "friend": "hachiware",
+    "expression": "greeting",
+    "source": "https://x.com/ngnchiikawa/status/1388801445139386372",
+    "panel": "Hachiware white blue-eared cat from large central RIGHT panel: tiny CLOSED short arched eyes with short brow dashes, small open mouth under double curved upper lip with tiny pink tongue, cheeks with three short hatches, arms out low at sides and tiny feet together, blue tail. No weapon. Exactly that warm reassurance expression; not a giant U grin.",
+    "prompt": "Use case: illustration-story. Create ONE standalone full-body game sprite based closely on the named character and specified panel in this original manga reference. Redraw cleanly for a tiny desktop game while retaining the exact eye shape, mouth structure, eyebrow geometry, proportions and pose from that panel. Simple flat manga colors, hand-inked black lines, little pink oval cheeks with short hatch marks. Do not embellish, beautify, add gradients, 3D shading, props not requested, or invent another expression. One character centered, entire body visible with generous transparent margin. No panel frame, scenery, lettering, speech bubbles, ground, cast shadow or other characters. True transparent background. The source is a reference, do not reproduce the comic page. Character/panel: Hachiware white blue-eared cat from large central RIGHT panel: tiny CLOSED short arched eyes with short brow dashes, small open mouth under double curved upper lip with tiny pink tongue, cheeks with three short hatches, arms out low at sides and tiny feet together, blue tail. No weapon. Exactly that warm reassurance expression; not a giant U grin.",
+    "correction": null,
+    "crop": [
+      129,
+      109,
+      1120,
+      1198
+    ],
+    "size": [
+      1230,
+      1278
+    ],
+    "asset": "hachiware-greeting.png"
+  }
+]

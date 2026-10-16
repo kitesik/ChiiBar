@@ -27,8 +27,10 @@ cp "$binary" "$app/Contents/MacOS/ChiiBar"
 # Drawn artwork, when there is any, replaces the code drawings (see Sources/ChiiBar/SpriteArt.swift).
 if [[ -d Art/Sprites ]]; then
     mkdir -p "$app/Contents/Resources"
-    cp -R Art/Sprites "$app/Contents/Resources/Sprites"
+    mkdir -p "$app/Contents/Resources/Sprites"
+    cp -R Art/Sprites/Manga "$app/Contents/Resources/Sprites/Manga"
 fi
+cp -R Art/Homes "$app/Contents/Resources/Homes"
 cat > "$app/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -36,10 +38,11 @@ cat > "$app/Contents/Info.plist" <<PLIST
 <dict>
     <key>CFBundleExecutable</key><string>ChiiBar</string>
     <key>CFBundleIdentifier</key><string>com.chiibar.app</string>
-    <key>CFBundleName</key><string>ChiiBar</string>
+    <key>CFBundleName</key><string>신분상승 토큰 치이카와</string>
+    <key>CFBundleDisplayName</key><string>신분상승 토큰 치이카와</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.2.1</string>
-    <key>CFBundleVersion</key><string>3</string>
+    <key>CFBundleShortVersionString</key><string>0.4.0</string>
+    <key>CFBundleVersion</key><string>28</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>

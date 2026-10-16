@@ -1,0 +1,99 @@
+{
+  "tool": "image_gen.imagegen",
+  "date": "2026-10-16",
+  "style": "치이카와 수준의 단순한 2D 그림체. 단계가 오를수록 공간·가구·소품 밀도와 생활 수준은 극적으로 상승.",
+  "simpleBase": "Create ONE game background home asset. Match the provided sample's extremely simple Chiikawa-like 2D manga cartoon look and cutaway composition. Dark brown rounded handdrawn outlines, flat pale pastel fills, naive cute proportions. Broad visible interior floor with open front wall. A few large plain shapes only; no microdetails. Entire building contained with generous transparent margins. Same shallow elevated frontal cutaway view as sample. Furnishings only at back and side edges. Middle and foreground MUST be empty walkable space. NO characters, NO text, NO photorealism, NO texture, NO gradients, NO shadows or glow, NO 3D render, NO wood grain, NO realistic materials. Actual transparent background, landscape 1536x1024. House type: ",
+  "simpleStages": [
+    [
+      1,
+      "Open-air campsite: no walls and no roof. A pale green oval grass clearing, one folded yellow sleeping mat and pillow back left, tiny lantern back right. Empty middle and front."
+    ],
+    [
+      2,
+      "Tiny humble wooden hut: two plain tan back/side walls, simple straw-colored sloped roof back edge, mat back left and tiny low table back right. Empty cream floor and little grass apron."
+    ],
+    [
+      3,
+      "Small brick cottage: cream walls with ONLY three short brick marks to suggest brick, simple rounded red roof back edge, no chimney. Futon back left and low table back right. Empty floor."
+    ],
+    [
+      5,
+      "Small cream cottage and white picket fence at far left/right garden edges, open front gate. Rounded pink roof, futon back left and tiny cupboard back right. Empty indoor floor opens to lawn."
+    ],
+    [
+      6,
+      "Cream cottage with a larger open lawn yard, one rounded tree far left and three stepping stones far right. Pink roof, futon back left and low table back right. Clear floor and generous empty lawn."
+    ],
+    [
+      7,
+      "Korean thatched cottage. Simple rounded straw-yellow roof, cream wall, one brown beam, futon back left, low table back right, two clay jars at far right outer edge. Empty ochre indoor floor and earthen courtyard."
+    ],
+    [
+      8,
+      "Korean hanok home. Gently upturned gray roof back edge, brown posts and ONE simple paper lattice door. Futon left and low tea table right. Open wood veranda and broad empty sandy courtyard."
+    ],
+    [
+      9,
+      "Modern house: simple mint flat roof edge and cream walls, one wide blue window. Small pastel sofa back left and simple kitchen cupboard back right. Wide empty cream floor, small green front lawn."
+    ],
+    [
+      10,
+      "Two-floor villa cutaway: little upper bedroom across back left, short simple staircase far right. Ground-floor blue sofa along left wall, one cupboard at back. Broad empty lower floor and patio."
+    ],
+    [
+      11,
+      "Apartment cutaway: rear blue window divided into four panes, pink sofa back left, simple kitchen unit back right, a small bed nook at upper left. Broad empty cream floor. One little side balcony. Low gray base."
+    ],
+    [
+      12,
+      "High-rise sky apartment CUTAWAY INTERIOR, NOT closed tower. Three tall blue rear windows with just a few tiny distant building silhouettes, mint sofa left, simple desk right. Spacious empty cream floor, blue-gray raised base."
+    ],
+    [
+      13,
+      "Penthouse cutaway: tiny upper loft bedroom along back left, simple side stair at far right, lower floor cream sofa back left and simple mint kitchen right. Very spacious empty lower floor and front terrace. One tiny oval pool far left outside edge. Three tall pale blue back windows."
+    ]
+  ],
+  "upgradeBase": "One transparent-background game environment asset, landscape 1536x1024. This is a dramatic social-status home upgrade in a Chiikawa-inspired cute game. Reference image specifies ONLY thick rounded brown outlines and pastel 2D manga drawing style. DO NOT copy its simple cottage architecture or empty one-room layout. Create the distinctly different architecture described below. Flat solid pastel colors, simplified rounded objects with recognizable silhouettes, NO photorealism, NO 3D rendering, NO realistic textures, NO dark glow. Cutaway dollhouse, front walls and most roof removed, slightly elevated frontal view, full building in frame. Furnished rooms and attractive layered architecture occupy the BACK 60 percent and SIDE edges; preserve a continuous clear foreground walkway at normalized x .30 to .70 and y .66 to .78, so separate animated characters can play. No people, no text. More objects is welcome but each object must be simple cartoon shapes. Actual transparent background, not black or checkerboard. Subject: ",
+  "upgradeStages": [
+    [
+      2,
+      "VERY POOR makeshift lean-to hut, visibly precarious tiny shelter. Four crooked wooden poles, patched slanted straw roof with one gap, only a partial back wall of uneven boards. One ragged woven mat and a chipped clay cup, no pillow, no table, no cozy cottage facade or window. Dirt patch and two stones. Extreme scarcity. Leave broad bare dirt middle."
+    ],
+    [
+      5,
+      "MODEST enclosed cottage, red tile roof edges, brick fireplace at back middle, snug bed with quilt left, tiny kitchen with kettle and hanging ladle right, wall clock, wood shelf with two books, flower box at window. White picket fence on garden sides and open front gate. A few flowers. About 9 small simple furnishings, ordinary but complete household. Empty central floor and little front yard."
+    ],
+    [
+      6,
+      "COMFORTABLE garden home, wider cottage with TWO distinct furnished rear nooks: bed and bookshelf left, little kitchen and dining table right. Open veranda across front, lush side garden with two round fruit trees, flower beds, birdhouse, small swing on FAR LEFT, gardening can right. Large clear central lawn. The garden is the main upgrade: garden and house together clearly wider and richer than fenced cottage."
+    ],
+    [
+      8,
+      "WEALTHY Korean aristocrat hanok compound, much grander than a tiny straw cottage. Broad elegant gray tiled roof wings with curved eaves, two rear rooms separated by dark wooden pillars: silk bedding and folding painted screen left, scholarly desk with brushpot and books right. Central wooden maru veranda, hanging lanterns, beautiful paper lattice doors. Side courtyard with small lotus pond and sculpted pine at far left, stone lantern and jars far right. Big open sandy courtyard through middle foreground. Rich architectural layering and at least twelve simple traditional props, still cute flat cartoon."
+    ],
+    [
+      9,
+      "COMFORTABLE modern single-family home CUTAWAY. Angular mint flat roof, two cozy rear rooms: separate bedroom with proper bed and bedside lamp left, tiled bathroom with tub far right. Lower living area has pink couch at left edge, TV stand against back wall, compact kitchen with fridge and utensils right. Small plant, wall art, slippers, tiny side patio. Clear open central cream floor. Clean modern architecture, no cottage curved red roof. Medium lifestyle density, around 12 objects."
+    ],
+    [
+      10,
+      "UPMARKET two-story villa cutaway, spacious cream-and-peach villa with asymmetric balconies and arched windows. Upper rear bedroom with four-poster bed and dresser, second upper rear study with bookcase. Side staircase at far right. Lower left corner blue sectional sofa and tiny side table; lower rear center dining nook; lower right mint kitchen with island against edge. Balcony plants and ivy, side garden with fountain. Broad empty lower central foreground walkway. Clearly two floors and many furnished zones, about 18 simplified objects, playful 2D cartoon."
+    ],
+    [
+      11,
+      "LARGE upscale modern apartment suite cutaway, wide rectangular modern architecture, apartment facade strip below floor showing windows. Four distinct rear rooms: bedroom left, tiny study next, kitchen/dining right, bathroom at far right. Front-side living area with large lavender L-shaped sofa at left, low TV console against rear partition, bookshelves, framed art, plants, floor lamp, balcony with drying rack and small round table at far right. Big windows show neighboring apartment blocks. Well-equipped abundant everyday life, about 22 simple props. Wide clear central living walkway. No cottage roof, no loft bed on ladder. Very spacious full-floor apartment."
+    ],
+    [
+      12,
+      "VERY WEALTHY skyscraper sky residence cutaway. Tall double-height glass walls, visible tower section/base beneath the residence with THREE slim floors of tiny windows, upper sky residence much grander than ordinary apartment. Huge blue panoramic windows show distant tiny city and clouds BELOW eye level. Luxurious dark teal curved sofa LEFT side, grand piano far left back, gold floor lamps, art wall, full bookshelf, large kitchen and dining at back right, indoor palm trees. Private elevator door at rear center. Open expansive ivory central floor and front observation terrace. Around 25 simple elegant objects, gold accents and blue glass, flat cute cartoon, no realistic material."
+    ],
+    [
+      13,
+      "ULTIMATE BILLIONAIRE PENTHOUSE PALACE cutaway perched on tall tower-top base. Broad THREE-TIER composition: upper rear master bedroom with canopy bed and pink bedding plus dressing room; mid rear library/lounge balcony with curved staircase at FAR RIGHT; lower main floor with grand ivory curved sofa far left, grand piano at back left, huge mint kitchen and dining nook at back right. Floor-to-ceiling blue windows reveal clouds and tiny city far below. Large terrace wings: infinity pool FAR LEFT EDGE, rooftop garden and two sun loungers FAR RIGHT EDGE, potted palms and small fountain, gold rails, chandelier, art, books, flowers. At least 30 charming simplified cartoon furnishings and architectural details. Center foreground MUST stay open ivory walkway x .30-.70,y .66-.78. Most lavish spacious house in the game, instantly dramatic leap from all others, maximal cute prosperity, NO cottage roof. Still flat brown-outline pastel manga art, not detailed realistic dollhouse."
+    ],
+    [
+      7,
+      "PROSPEROUS Korean thatched country estate, upgrade from a garden cottage but less grand than aristocrat hanok. Broad thick rounded golden thatch roof with TWO comfortable rear room nooks: tidy pink bedding, folded quilts and simple wooden chest left; low dining table with tea set, shelf and small kitchen hearth right. Deep wooden veranda, bunch of drying peppers under eaves, three clay fermentation jars at far right, abundant vegetable patch and fruit tree at far left, small storage shed at back side. Open wide earthen courtyard across center foreground, sparse stepping stones. Around 15 simple props convey a well-established plentiful country home, not poverty. Warm cream and ochre, dark brown outlines, flat pastel cartoon, no realistic texture."
+    ]
+  ]
+}

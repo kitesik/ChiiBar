@@ -1,17 +1,24 @@
 import Foundation
 
-// MARK: - Tuning (measured from this user's logs, see README.md)
+// MARK: - Tuning (initial non-developer work pacing; validate with real cohorts)
 
 public enum Tuning {
-    /// Cost of the first new piece (stage 1 -> 2). About 20 minutes of normal use.
-    public static let firstPieceCost: Int64 = 1_500_000
-    /// Authored accelerating curve: quick early wins, longer late-stage goals.
+    public static let economyVersion = 2
+    public static let firstPieceCost: Int64 = 20_000
     public static let pieceCosts: [Int64] = [
-        1_500_000, 2_500_000, 4_000_000, 6_500_000, 10_000_000, 15_000_000,
-        22_000_000, 32_000_000, 45_000_000, 62_000_000, 84_000_000
+        20_000, 40_000, 80_000, 150_000, 250_000, 400_000,
+        600_000, 900_000, 1_300_000, 1_800_000, 2_500_000, 3_500_000
     ]
-    /// One draw ticket per this many effective tokens (about 1.5 active days).
-    public static let ticketCost: Int64 = 63_000_000
+    public static let ticketCost: Int64 = 150_000
+    public static let dailyTarget: Int64 = 300_000
+    public static func duplicateGift(forStage stage: Int) -> Int64 {
+        min(150_000, HousePlan.cost(ofStage: stage) / 10)
+    }
+    static let legacyPieceCosts: [Int64] = [
+        1_500_000, 2_500_000, 4_000_000, 6_500_000, 10_000_000, 15_000_000,
+        22_000_000, 32_000_000, 45_000_000, 62_000_000, 84_000_000, 112_000_000
+    ]
+    static let legacyTicketCost: Int64 = 63_000_000
 }
 
 // MARK: - Friends
@@ -35,9 +42,9 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
 
     public var rarity: Int {
         switch self {
-        case .chiikawa, .rakko, .anoko: 3
-        case .hachiware, .usagi, .kani: 2
-        case .momonga, .kurimanju, .shisa: 1
+        case .usagi, .hachiware, .momonga: 3
+        case .chiikawa, .kurimanju, .shisa: 2
+        case .kani, .rakko, .anoko: 1
         }
     }
 
@@ -46,15 +53,40 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
 
 extension FriendID: CodingKeyRepresentable {}
 
+/// Shared by the actual draw and the probability display.
+public enum DrawOdds {
+    // Dengeki Online's March 2026 reader poll order; weights are game design, not poll shares.
+    public static let ranked: [FriendID] = [.usagi, .hachiware, .momonga, .chiikawa, .kurimanju, .shisa, .kani, .rakko, .anoko]
+    public static let weights = [2, 3, 5, 7, 10, 13, 16, 20, 24]
+    public static var totalWeight: Int { weights.reduce(0, +) }
+    public static func friend(for roll: Int) -> FriendID {
+        precondition((0..<totalWeight).contains(roll))
+        var ceiling = 0
+        for (index, weight) in weights.enumerated() {
+            ceiling += weight
+            if roll < ceiling { return ranked[index] }
+        }
+        preconditionFailure("Invalid draw weights")
+    }
+    public static func probability(of friend: FriendID, firstDraw: Bool = false) -> Double {
+        Double(weights[ranked.firstIndex(of: friend)!]) / Double(totalWeight)
+    }
+}
+
+
 // MARK: - House
 
 public enum HousePlan {
-    public static let lastStage = 12
+    public static let lastStage = 13
     /// Name of each stage's piece, index = stage - 1.
     public static let pieceNames = [
-        "빈 풀밭", "나무 마루", "벽", "지붕", "방석", "작은 밥상",
-        "이불", "창문과 커튼", "스탠드 조명", "작은 부엌", "화분과 책", "액자와 가랜드",
+        "비박", "움막집", "벽돌집", "굴뚝집", "울타리집", "마당집", "초가집",
+        "양반집", "현대식집", "빌라", "아파트", "초고층 빌딩", "초고층 빌딩 펜트하우스",
     ]
+
+    public static func name(of stage: Int) -> String {
+        pieceNames[max(0, min(lastStage - 1, stage - 1))]
+    }
 
     /// Tokens needed to add piece `stage` (2...12) once stage - 1 is reached.
     public static func cost(ofStage stage: Int) -> Int64 {
@@ -69,6 +101,7 @@ public struct House: Codable, Sendable, Equatable {
     public var stage: Int = 1
     public var progress: Int64 = 0
     public var isComplete: Bool { stage >= HousePlan.lastStage }
+    public var fraction: Double { nextCost.map { min(1, Double(progress) / Double($0)) } ?? 1 }
     public var canBuild: Bool { nextCost.map { progress >= $0 } ?? false }
     public var nextCost: Int64? { isComplete ? nil : HousePlan.cost(ofStage: stage + 1) }
     public init(stage: Int = 1, progress: Int64 = 0) { self.stage = stage; self.progress = progress }
@@ -112,6 +145,7 @@ public struct DailyProgress: Codable, Sendable, Equatable {
 }
 
 public struct GameState: Codable, Sendable, Equatable {
+    public var economyVersion: Int? = Tuning.economyVersion
     public var creditFrom: Date
     public var tickets: Int = 1
     public var ticketProgress: Int64 = 0
@@ -172,38 +206,42 @@ public struct GameState: Codable, Sendable, Equatable {
         return out
     }
 
-    /// A click spends stored experience on exactly one piece. Surplus is retained.
+    /// One explicit upgrade consumes one threshold; surplus remains banked.
     @discardableResult
-    public mutating func build(at date: Date = Date()) -> [GameEvent] {
-        guard let id = current, var h = houses[id], let cost = h.nextCost,
-              h.progress >= cost else { return [] }
-        observeProgress(at: date)
-        if var record = dailyProgress?[id] {
-            record.upgrades += 1
-            record.lastUpgradeAt = date
-            dailyProgress?[id] = record
+    public mutating func advanceHouse(for id: FriendID, at date: Date) -> [GameEvent] {
+        guard var house = houses[id] else { return [] }
+        var events: [GameEvent] = []
+        if let cost = house.nextCost, house.progress >= cost {
+            house.progress -= cost
+            house.stage += 1
+            events.append(.piece(id, stage: house.stage))
+            if var record = dailyProgress?[id], record.day == DayKey.of(date) {
+                record.upgrades += 1
+                record.lastUpgradeAt = date
+                dailyProgress?[id] = record
+            }
         }
-        h.progress -= cost
-        h.stage += 1
-        var events: [GameEvent] = [.piece(id, stage: h.stage)]
-        if h.isComplete { h.progress = 0; events.append(.completed(id)) }
-        houses[id] = h
+        if house.isComplete && !events.isEmpty {
+            house.progress = 0
+            events.append(.completed(id))
+        }
+        houses[id] = house
         return events
     }
 
-    /// Spends one ticket. Weights: 1-star 60%, 2-star 30%, 3-star 10%; uniform in a tier.
-    /// The first draw is always one of the three starters.
-    public mutating func draw<R: RandomNumberGenerator>(using rng: inout R) -> DrawResult? {
+    /// Explicit user action; never called by credit, loading or duplicate gifts.
+    @discardableResult
+    public mutating func build(at date: Date = Date()) -> [GameEvent] {
+        guard let id = current else { return [] }
+        observeProgress(at: date)
+        return advanceHouse(for: id, at: date)
+    }
+
+    /// Every ticket, including the free first ticket, uses the same full roster.
+    public mutating func draw<R: RandomNumberGenerator>(using rng: inout R, at date: Date = Date()) -> DrawResult? {
         guard tickets > 0 else { return nil }
         tickets -= 1
-        let friend: FriendID
-        if houses.isEmpty {
-            friend = FriendID.starters.randomElement(using: &rng)!
-        } else {
-            let roll = Int.random(in: 0..<100, using: &rng)
-            let tier = roll < 60 ? 1 : (roll < 90 ? 2 : 3)
-            friend = FriendID.allCases.filter { $0.rarity == tier }.randomElement(using: &rng)!
-        }
+        let friend = DrawOdds.friend(for: Int.random(in: 0..<DrawOdds.totalWeight, using: &rng))
         guard var h = houses[friend] else {
             houses[friend] = House()
             met.append(friend)
@@ -214,9 +252,10 @@ public struct GameState: Codable, Sendable, Equatable {
             tickets += 1
             return DrawResult(friend: friend, outcome: .ticketBack)
         }
-        h.progress += h.nextCost!
+        let giftedStage = h.stage + 1
+        h.progress += Tuning.duplicateGift(forStage: giftedStage)
         houses[friend] = h
-        return DrawResult(friend: friend, outcome: .gift(stage: h.stage + 1))
+        return DrawResult(friend: friend, outcome: .gift(stage: giftedStage))
     }
 
     public mutating func select(_ id: FriendID) {
@@ -317,11 +356,13 @@ public enum Store {
     public static func load(_ url: URL) -> GameState? {
         guard let data = try? Data(contentsOf: url) else { return nil }
         guard let state = try? JSONDecoder().decode(GameState.self, from: data), isValid(state) else { return nil }
-        return state
+        return migrate(state)
     }
 
     private static func isValid(_ s: GameState) -> Bool {
-        s.tickets >= 0 && s.ticketProgress >= 0 && s.ticketProgress < Tuning.ticketCost
+        (s.economyVersion == nil || s.economyVersion == Tuning.economyVersion)
+        && s.tickets >= 0 && s.ticketProgress >= 0
+        && s.ticketProgress < (s.economyVersion == nil ? Tuning.legacyTicketCost : Tuning.ticketCost)
         && s.dayTotals.values.allSatisfy { $0 >= 0 }
         && Set(s.met).count == s.met.count && Set(s.met) == Set(s.houses.keys)
         && (s.current.map { s.houses[$0] != nil } ?? s.houses.isEmpty)
@@ -335,11 +376,39 @@ public enum Store {
     /// propagate so the caller never silently overwrites the only saved copy.
     public static func loadOrRecover(_ url: URL, now: Date) throws -> GameState {
         guard FileManager.default.fileExists(atPath: url.path) else { return GameState(now: now) }
-        _ = try Data(contentsOf: url)
-        if let state = load(url) { return state }
+        let original = try Data(contentsOf: url)
+        if let state = load(url) {
+            let old = try JSONDecoder().decode(GameState.self, from: original)
+            if old.economyVersion == nil {
+                let backup = url.deletingLastPathComponent().appendingPathComponent("state.before-economy-v2-\(UUID().uuidString).json")
+                try original.write(to: backup, options: .atomic)
+            }
+            return state
+        }
         let backup = url.deletingLastPathComponent().appendingPathComponent("state.corrupt-\(UUID().uuidString).json")
         try FileManager.default.moveItem(at: url, to: backup)
         return GameState(now: now)
+    }
+
+    /// Preserve fractional progress AND any surplus, without auto-building or minting tickets.
+    private static func migrate(_ original: GameState) -> GameState {
+        guard original.economyVersion == nil else { return original }
+        var state = original
+        func scaled(_ value: Int64, old: Int64, new: Int64) -> Int64 {
+            // All new costs are lower. Quotient/remainder avoids overflow and float rounding.
+            (value / old) * new + (value % old) * new / old
+        }
+        for (friend, house) in state.houses where !house.isComplete {
+            state.houses[friend]?.progress = scaled(house.progress,
+                old: Tuning.legacyPieceCosts[house.stage - 1], new: house.nextCost!)
+        }
+        state.ticketProgress = scaled(state.ticketProgress, old: Tuning.legacyTicketCost, new: Tuning.ticketCost)
+        for (friend, record) in state.dailyProgress ?? [:] where (1..<HousePlan.lastStage).contains(record.startStage) {
+            state.dailyProgress?[friend]?.startProgress = scaled(record.startProgress,
+                old: Tuning.legacyPieceCosts[record.startStage - 1], new: Tuning.pieceCosts[record.startStage - 1])
+        }
+        state.economyVersion = Tuning.economyVersion
+        return state
     }
 
     public static func save(_ state: GameState, to url: URL) throws {

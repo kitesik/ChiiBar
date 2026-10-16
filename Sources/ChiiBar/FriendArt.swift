@@ -21,15 +21,15 @@ enum Ink {
 extension FriendID {
     var fur: Color {
         switch self {
-        case .chiikawa: Ink.rgb(0xFFFDF8)
+        case .chiikawa: Ink.rgb(0xFFFEFC)
         case .hachiware: Ink.rgb(0xFFFFFF)
-        case .usagi: Ink.rgb(0xFFF0BE)
+        case .usagi: Ink.rgb(0xFFF0BD)
         case .momonga: Ink.rgb(0xFFFFFF)
-        case .kurimanju: Ink.rgb(0xE0A85E)
-        case .rakko: Ink.rgb(0xC99B72)
-        case .shisa: Ink.rgb(0xF7B84A)
-        case .anoko: Ink.rgb(0xFFFCED)
-        case .kani: Ink.rgb(0xF4B9C6)
+        case .kurimanju: Ink.rgb(0xF9E5B9)
+        case .rakko: Ink.rgb(0xF4E9C8)
+        case .shisa: Ink.rgb(0xFFF0C5)
+        case .anoko: Ink.rgb(0xFFF9E5)
+        case .kani: Ink.rgb(0xFCE3E7)
         }
     }
 
@@ -39,11 +39,11 @@ extension FriendID {
         case .chiikawa: Ink.rgb(0xF4ECE0)
         case .hachiware: Ink.rgb(0x6B7C98)
         case .usagi: Ink.rgb(0xF5DE96)
-        case .momonga: Ink.rgb(0xC3D2E4)
-        case .kurimanju: Ink.rgb(0x8C5A2E)
+        case .momonga: Ink.rgb(0xBCD8E9)
+        case .kurimanju: Ink.rgb(0x9A7054)
         case .rakko: Ink.rgb(0xF4E3CD)
-        case .shisa: Ink.rgb(0xE07A2C)
-        case .anoko: Ink.rgb(0xDCCFA3)
+        case .shisa: Ink.rgb(0xD99565)
+        case .anoko: Ink.rgb(0xD9BD7B)
         case .kani: Ink.rgb(0xDA6D80)
         }
     }
@@ -67,6 +67,7 @@ struct Pose {
     enum Eyes { case open, closed, happy, up }
     enum Mouth { case smile, open, munch, flat, grin }
     enum Arms { case down, front, up }
+    var mangaExpression: MangaExpression = .base
     var eyes: Eyes = .open
     var mouth: Mouth?
     var arms: Arms = .down

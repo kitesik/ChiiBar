@@ -26,7 +26,7 @@ enum GachaArt {
             machine(c, handle: 0, jiggle: idleTime, shaking: false)
             return
         }
-        let glow = capsuleColor(result.friend.rarity)
+        let glow = Ink.rgb(0xFFD779) // Before reveal, neither shape nor color depends on the winner.
         c.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Ink.rgb(0x312B40)))
         if t < revealAt {
             let progress = min(1, max(0, (t - 1.3) / 1.1))
@@ -35,16 +35,12 @@ enum GachaArt {
                 Gradient(colors: [glow.opacity(0.3 + progress * 0.5), glow.opacity(0)]),
                 center: center, startRadius: 5, endRadius: 110))
             var mystery = c
-            mystery.translateBy(x: 160 + (t > 1.3 ? sin(t * 32) * 2 : 0), y: 211)
-            mystery.rotate(by: .degrees(sin(t * (6 + t * 4)) * (2 + progress * 5)))
-            if t < 1.3 {
-                paint(mystery, ell(0, -55, 84, 102), Ink.rgb(0xEDE4F5))
-            } else {
-                mystery.addFilter(.colorMultiply(Ink.rgb(0x191420)))
-                FriendArt.draw(mystery, result.friend, base: .zero, size: 72, pose: Pose())
-            }
-            c.draw(Text("?").font(.system(size: 42, weight: .heavy, design: .rounded)).foregroundColor(.white), at: center)
-            c.draw(Text(t < 1.3 ? "어떤 친구가 찾아올까요?" : "조금씩 모습이 드러나요…")
+            mystery.translateBy(x: 160 + sin(t * 7) * (1.5 + progress * 1.5), y: 211 + sin(t * 5) * 2)
+            mystery.rotate(by: .degrees(sin(t * 7) * (2 + progress * 3)))
+            MysteryDrawShape.draw(mystery, elapsed: t)
+            mystery.draw(Text("?").font(.system(size: 42, weight: .heavy, design: .rounded)).foregroundColor(.white),
+                         at: CGPoint(x: 0, y: -56))
+            c.draw(Text(t < 1.3 ? "어떤 친구가 찾아올까요?" : "두근두근… 곧 만나요!")
                 .font(.system(size: 13, weight: .semibold)).foregroundColor(.white.opacity(0.9)),
                 at: CGPoint(x: 160, y: 270))
             for i in 0..<10 {
@@ -150,12 +146,18 @@ enum GachaArt {
         c.draw(Text(result.friend.name).font(.system(size: 18, weight: .heavy, design: .rounded)).foregroundColor(.white),
                at: CGPoint(x: 160, y: 72))
         let line: String
+        let detail: String
         switch result.outcome {
-        case .newFriend: line = "새로운 친구가 찾아왔어요"
-        case .gift: line = "다시 만난 친구가 경험치를 선물했어요"
-        case .ticketBack: line = "이미 집이 완성된 친구예요. 뽑기권 1장 반환"
+        case .newFriend:
+            line = "새로운 친구가 찾아왔어요"; detail = "이제 이 친구의 집도 지을 수 있어요"
+        case .gift(let stage):
+            line = "앗, 이미 만난 친구네요!"
+            detail = "대신 \(result.friend.name)의 집 경험치 +\(TokenFormat.short(Tuning.duplicateGift(forStage: stage)))를 드릴게요."
+        case .ticketBack:
+            line = "이 친구의 집은 이미 완성됐어요"; detail = "사용한 뽑기권 1장을 돌려드렸어요"
         }
-        c.draw(Text(line).font(.system(size: 12, weight: .semibold)).foregroundColor(.white.opacity(0.85)),
-               at: CGPoint(x: 160, y: 270))
+        c.draw(Text(line).font(.system(size: 12, weight: .bold)).foregroundColor(.white), at: CGPoint(x: 160, y: 260))
+        c.draw(Text(detail).font(.system(size: 11, weight: .medium)).foregroundColor(Ink.rgb(0xFFE5A9)),
+               at: CGPoint(x: 160, y: 281))
     }
 }

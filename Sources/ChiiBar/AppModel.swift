@@ -10,6 +10,9 @@ enum AppTab: String, CaseIterable { case home = "집", friends = "친구" }
 
 @MainActor
 final class AppModel: ObservableObject {
+    @Published var arrivalStart: Date?
+    private var progressTransition: (friend: FriendID, house: House, start: Date)?
+    let isDemo: Bool
     @Published var tab: AppTab
     @Published var state: GameState
     @Published var reveal: (stage: Int, start: Date)?
@@ -29,8 +32,9 @@ final class AppModel: ObservableObject {
     private var scanning = false
     private var timer: Timer?
 
-    init(state: GameState, stateURL: URL?, fixedNow: Date? = nil) {
-        self.tab = state.houses.isEmpty ? .friends : .home
+    init(state: GameState, stateURL: URL?, fixedNow: Date? = nil, isDemo: Bool = false) {
+        self.isDemo = isDemo
+        self.tab = .home
         self.state = state
         self.stateURL = stateURL
         self.fixedNow = fixedNow
@@ -68,8 +72,10 @@ final class AppModel: ObservableObject {
             return
         }
         state.scan = scan
+        let before = state.currentHouse
         let gained = state.credit(events)
-        if events.contains(where: { $0.date >= state.creditFrom }) { lastCredit = now }
+        trackProgress(from: before)
+        if events.contains(where: { $0.date >= state.creditFrom && $0.tokens > 0 }) { lastCredit = now }
         handle(gained)
         save()
     }
@@ -79,6 +85,7 @@ final class AppModel: ObservableObject {
             switch e {
             case .piece(let f, let stage) where f == state.current:
                 reveal = (stage, now)
+                upgradeNotice = ("\(HousePlan.name(of: stage)) 입주!", now)
                 say(f.dialogue(for: .upgraded))
             case .completed(let f) where f == state.current:
                 endingStart = now
@@ -87,6 +94,37 @@ final class AppModel: ObservableObject {
                 break
             }
         }
+    }
+
+    func trackProgress(from old: House?) {
+        guard !building, let old, let friend = state.current, old != state.currentHouse else { return }
+        progressTransition = (friend, old, now)
+    }
+
+    func welcome() { arrivalStart = now }
+
+    static func demo() -> AppModel {
+        var state = GameState(now: Date())
+        state.met = FriendID.allCases
+        state.houses = Dictionary(uniqueKeysWithValues: FriendID.allCases.map { ($0, House()) })
+        state.current = .chiikawa
+        let model = AppModel(state: state, stateURL: nil, isDemo: true)
+        model.activityOverride = .tea
+        return model
+    }
+
+    func demoGrow() {
+        guard isDemo, !building, let friend = state.current, var house = state.currentHouse, !house.isComplete else { return }
+        let old = house
+        // Give enough to demonstrate a manual move and a 50% surplus in the next home.
+        house.progress += (house.nextCost ?? 0) + (house.stage < 12 ? HousePlan.cost(ofStage: house.stage + 2) / 2 : 0)
+        state.houses[friend] = house
+        trackProgress(from: old)
+    }
+
+    func nextDemoFriend() {
+        guard isDemo, let friend = state.current, let index = FriendID.allCases.firstIndex(of: friend) else { return }
+        select(FriendID.allCases[(index + 1) % FriendID.allCases.count])
     }
 
     func say(_ text: String) { bubble = (text, now) }
@@ -98,8 +136,10 @@ final class AppModel: ObservableObject {
     }
 
     func buildHouse() {
-        guard !building, gacha == nil, state.currentHouse?.canBuild == true else { return }
+        guard !building, !(carryover?.isAnimating(at: now) ?? false), gacha == nil, state.currentHouse?.canBuild == true else { return }
+        let previousHouse = state.currentHouse
         let events = state.build(at: now)
+        trackProgress(from: previousHouse)
         guard let f = state.current, let h = state.currentHouse else { return }
         // Commit once at the click, so closing the popover never loses or repeats it.
         building = true
@@ -107,12 +147,12 @@ final class AppModel: ObservableObject {
         reveal = (h.stage, now)
         carryover = h.progress > 0 && !h.isComplete
             ? UpgradeCarryover(friend: f, stage: h.stage, amount: h.progress,
-                               startsAt: now.addingTimeInterval(2.4)) : nil
+                               startsAt: now.addingTimeInterval(HomeAssembly.duration)) : nil
         endingStart = nil
         say(f.dialogue(for: .building))
         save()
         Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(2.4))
+            try? await Task.sleep(for: .seconds(HomeAssembly.duration))
             guard let self else { return }
             self.building = false
             self.upgradeNotice = (UpgradeCopy.completion[h.stage]!, self.now)
@@ -128,6 +168,11 @@ final class AppModel: ObservableObject {
         reveal = nil
         upgradeNotice = nil
         endingStart = nil
+        bubble = nil
+        pokeStart = nil
+        carryover = nil
+        progressTransition = nil
+        arrivalStart = now
         state.select(f)
         state.observeProgress(at: now)
         tab = .home
@@ -138,7 +183,7 @@ final class AppModel: ObservableObject {
         guard gacha == nil, !building else { return }
         state.observeProgress(at: now)
         var rng = SystemRandomNumberGenerator()
-        guard let r = state.draw(using: &rng) else { return }
+        guard let r = state.draw(using: &rng, at: now) else { return }
         state.observeProgress(at: now)
         upgradeNotice = nil
         gacha = GachaSession(start: now, result: r)
@@ -148,6 +193,11 @@ final class AppModel: ObservableObject {
     func finishGacha(reducedMotion: Bool = false) {
         guard let g = gacha, reducedMotion || now.timeIntervalSince(g.start) >= GachaArt.finishAt else { return }
         gacha = nil
+        arrivalStart = now
+        pokeStart = nil
+        reveal = nil
+        endingStart = nil
+        progressTransition = nil
         tab = .home
         state.select(g.result.friend)
         switch g.result.outcome {
@@ -176,10 +226,23 @@ final class AppModel: ObservableObject {
             return e >= 0 && e < limit ? e : nil
         }
         var p = SceneParams(friend: f, stage: h.stage, activity: activity, t: date.timeIntervalSinceReferenceDate)
-        if let r = reveal, let e = since(r.start, 4) { p.reveal = (r.stage, e) }
+        if let r = reveal, let e = since(r.start, 8.0) { p.reveal = (r.stage, e) }
         p.endingElapsed = since(endingStart, 7)
         p.pokeElapsed = since(pokeStart, 1.5)
         if let b = bubble, since(b.start, 2.6) != nil { p.bubble = b.text }
+        p.arrivalElapsed = since(arrivalStart, 1.1)
+        p.constructionProgress = h.fraction
+        if let transition = progressTransition, transition.friend == f,
+           let e = since(transition.start, HomeAssembly.duration) {
+            p.progressElapsed = e
+            p.previousFraction = transition.house.fraction
+            if transition.house.stage == h.stage {
+                p.constructionProgress = transition.house.fraction + (h.fraction - transition.house.fraction) * ArrivalMotion.ease(e)
+            } else { p.previousStage = transition.house.stage }
+        }
+        if let carryover, carryover.friend == f, carryover.stage == h.stage {
+            p.constructionProgress = carryover.displayedFraction(target: h.fraction, at: date, reduceMotion: false)
+        }
         p.snackIsPudding = Int(date.timeIntervalSince1970 / 120) % 2 == 1
         return p
     }
@@ -187,17 +250,6 @@ final class AppModel: ObservableObject {
 
 /// Authored per item: Korean particles and completion verbs are intentional.
 enum UpgradeCopy {
-    static let completion: [Int: String] = [
-        2: "나무 마루가 놓였어요!",
-        3: "벽이 세워졌어요!",
-        4: "지붕이 올라갔어요!",
-        5: "방석이 놓였어요!",
-        6: "작은 밥상이 놓였어요!",
-        7: "포근한 이불이 준비됐어요!",
-        8: "창문과 커튼이 설치됐어요!",
-        9: "스탠드 조명이 켜졌어요!",
-        10: "작은 부엌이 만들어졌어요!",
-        11: "화분과 책이 놓였어요!",
-        12: "액자와 가랜드로 꾸민 우리 집, 완성!"
-    ]
+    static let completion: [Int: String] = Dictionary(uniqueKeysWithValues:
+        (2...HousePlan.lastStage).map { ($0, "\(HousePlan.name(of: $0)) 입주!") })
 }

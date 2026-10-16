@@ -1,8 +1,9 @@
 import SwiftUI
+import ChiiCore
 
 /// A fixed daily reference, not a cap on earned experience or a new reward rule.
 struct DailyGoalCard: View {
-    static let target: Int64 = 42_000_000
+    static let target: Int64 = Tuning.dailyTarget
     let earned: Int64
     private var ratio: Double { Double(max(0, earned)) / Double(Self.target) }
     private var percent: String { floor(ratio * 100).formatted(.number.precision(.fractionLength(0))) }
@@ -20,7 +21,7 @@ struct DailyGoalCard: View {
                 .minimumScaleFactor(0.6).lineLimit(1)
             ProgressTrack(fraction: min(1, ratio), sweepFrom: nil, fixedNow: .distantPast)
                 .accessibilityHidden(true)
-            Text("\(amount) / 4,200만")
+            Text("\(amount) / \(Self.target / 10_000)만")
                 .font(.system(size: 9, weight: .medium))
                 .lineLimit(1).minimumScaleFactor(0.7)
         }

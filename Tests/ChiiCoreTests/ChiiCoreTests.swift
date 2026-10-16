@@ -145,17 +145,19 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         return s
     }
 
-    @Test func firstDrawIsStarter() {
-        for seed in 0..<200 as Range<UInt64> {
+    @Test func firstDrawUsesFullRosterAndOneFreeTicket() {
+        var seen: Set<FriendID> = []
+        for seed in 0..<1000 as Range<UInt64> {
             var s = GameState(now: now)
             var rng = SeededRNG(seed: seed)
             let r = s.draw(using: &rng)!
-            #expect(FriendID.starters.contains(r.friend))
+            seen.insert(r.friend)
             #expect(r.outcome == .newFriend)
             #expect(s.houses[r.friend] == House(stage: 1))
             #expect(s.tickets == 0)
             #expect(s.draw(using: &rng) == nil)
         }
+        #expect(seen == Set(FriendID.allCases))
     }
 
     @Test func rarityWeights() {
@@ -170,14 +172,8 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
             tiers[r.friend.rarity, default: 0] += 1
             perFriend[r.friend, default: 0] += 1
         }
-        #expect(abs(Double(tiers[1]!) / Double(n) - 0.6) < 0.02)
-        #expect(abs(Double(tiers[2]!) / Double(n) - 0.3) < 0.02)
-        #expect(abs(Double(tiers[3]!) / Double(n) - 0.1) < 0.02)
-        #expect((perFriend[.anoko] ?? 0) > 0)
-        #expect((perFriend[.kani] ?? 0) > 0)
-        // uniform within the 1-star tier
-        for f in [FriendID.momonga, .kurimanju, .shisa] {
-            #expect(abs(Double(perFriend[f]!) / Double(n) - 0.2) < 0.02)
+        for friend in FriendID.allCases {
+            #expect(abs(Double(perFriend[friend] ?? 0) / Double(n) - DrawOdds.probability(of: friend)) < 0.015)
         }
         // same seed, same sequence
         var a = SeededRNG(seed: 7), b = SeededRNG(seed: 7)
@@ -197,7 +193,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         #expect(restored.met == state.met)
     }
 
-    @Test func duplicateAddsMaterialsWithoutBuilding() {
+    @Test func duplicateBanksExperienceUntilManualUpgrade() {
         var rng = SeededRNG(seed: 1)
         // keep drawing until we hit a duplicate of an owned friend
         var s = GameState(now: now)
@@ -205,60 +201,64 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         s.tickets = 1
         let r = s.draw(using: &rng)!
         #expect(r.outcome == .gift(stage: 4))
-        #expect(s.houses[r.friend] == House(stage: 3, progress: HousePlan.cost(ofStage: 4) + 5))
+        #expect(s.houses[r.friend] == House(stage: 3, progress: Tuning.duplicateGift(forStage: 4) + 5))
         #expect(s.tickets == 0)
     }
 
     @Test func duplicateOnFinishedHouseGivesTicketBack() {
         var rng = SeededRNG(seed: 3)
         var s = GameState(now: now)
-        for f in FriendID.allCases { s.houses[f] = House(stage: 12) }
+        for f in FriendID.allCases { s.houses[f] = House(stage: 13) }
         s.tickets = 1
         let r = s.draw(using: &rng)!
         #expect(r.outcome == .ticketBack)
         #expect(s.tickets == 1)
     }
 
-    @Test func stageCostsMonotonicAndTwelveEnds() {
+    @Test func allThirteenHomesRequireTwelveExplicitUpgrades() {
+        let names = ["비박", "움막집", "벽돌집", "굴뚝집", "울타리집", "마당집", "초가집", "양반집", "현대식집", "빌라", "아파트", "초고층 빌딩", "초고층 빌딩 펜트하우스"]
+        #expect(HousePlan.pieceNames == names)
         var prev: Int64 = 0
-        for st in 2...12 {
+        for st in 2...13 {
             #expect(HousePlan.cost(ofStage: st) > prev)
             prev = HousePlan.cost(ofStage: st)
         }
-        #expect(HousePlan.pieceNames.count == 12)
         var s = owned(.usagi)
-        let credited = s.credit([ev(HousePlan.totalCost)])
+        s.observeProgress(at: now)
+        let events = s.credit([ev(HousePlan.totalCost + 123)])
         #expect(s.currentHouse?.stage == 1)
-        #expect(!credited.contains(.completed(.usagi)))
-        var events: [GameEvent] = []
-        for expectedStage in 2...12 {
-            events += s.build()
-            #expect(s.currentHouse?.stage == expectedStage)
+        #expect(!events.contains(.completed(.usagi)))
+        for stage in 2...13 {
+            let built = s.build(at: now)
+            #expect(s.currentHouse?.stage == stage)
+            #expect(built.filter { if case .piece = $0 { true } else { false } }.count == 1)
         }
+        #expect(s.currentHouse == House(stage: 13))
+        #expect(s.progressToday(for: .usagi, at: now)?.upgrades == 12)
         #expect(s.build().isEmpty)
-        #expect(s.houses[.usagi]!.stage == 12)
-        #expect(s.houses[.usagi]!.isComplete)
-        #expect(events.contains(.completed(.usagi)))
-        #expect(events.filter { if case .piece = $0 { true } else { false } }.count == 11)
     }
 
-    @Test func partialProgressAndStageByStage() {
+    @Test func exactBoundaryAndSurplusWaitForClick() {
         var s = owned(.hachiware)
         s.credit([ev(HousePlan.cost(ofStage: 2) - 1)])
         #expect(s.currentHouse!.stage == 1)
-        #expect(s.build().isEmpty)
-        s.credit([ev(1)])
+        #expect(s.currentHouse!.fraction < 1)
+        #expect(s.credit([ev(1)]).isEmpty)
         #expect(s.currentHouse?.stage == 1)
         #expect(s.currentHouse?.canBuild == true)
-        #expect(s.build() == [.piece(.hachiware, stage: 2)])
-        #expect(s.currentHouse == House(stage: 2, progress: 0))
+        #expect(s.build(at: now) == [.piece(.hachiware, stage: 2)])
+        #expect(s.currentHouse == House(stage: 2))
+        s.credit([ev(HousePlan.cost(ofStage: 3) + 42)])
+        #expect(s.currentHouse?.stage == 2)
+        #expect(s.build(at: now) == [.piece(.hachiware, stage: 3)])
+        #expect(s.currentHouse == House(stage: 3, progress: 42))
         #expect(s.build().isEmpty)
     }
 
     @Test func tokensAfterCompletionOnlyEarnTickets() {
-        var s = owned(.rakko, stage: 12)
+        var s = owned(.rakko, stage: 13)
         let events = s.credit([ev(Tuning.ticketCost * 2 + 5)])
-        #expect(s.currentHouse == House(stage: 12, progress: 0))
+        #expect(s.currentHouse == House(stage: 13, progress: 0))
         #expect(s.tickets == 3)
         #expect(s.ticketProgress == 5)
         #expect(events == [.ticket, .ticket])
@@ -359,35 +359,48 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         #expect(try Store.loadOrRecover(url, now: now) == state)
     }
 
-    @Test func pacingRequiresMoreThanOneTypicalDayPerTicket() {
+    @Test func nonDeveloperPacingAndDuplicateGift() {
         var s = owned(.hachiware)
         s.tickets = 0
-        s.credit([ev(42_000_000)])
+        s.credit([ev(149_999)])
         #expect(s.tickets == 0)
-        s.credit([ev(21_000_000)])
+        s.credit([ev(1)])
         #expect(s.tickets == 1)
         #expect(s.ticketProgress == 0)
         #expect(s.currentHouse?.stage == 1)
-        #expect(HousePlan.cost(ofStage: 2) == 1_500_000)
-        #expect(HousePlan.cost(ofStage: 12) == 84_000_000)
-        let costs = (2...12).map { HousePlan.cost(ofStage: $0) }
-        let increments = zip(costs.dropFirst(), costs).map { $0 - $1 }
-        #expect(zip(increments.dropFirst(), increments).allSatisfy { $0 > $1 })
+        #expect(s.currentHouse?.progress == 150_000)
+        #expect(HousePlan.cost(ofStage: 2) == 20_000)
+        #expect(HousePlan.totalCost == 11_540_000)
+        #expect(Tuning.duplicateGift(forStage: 2) == 2_000)
+        #expect(Tuning.duplicateGift(forStage: 13) == 150_000)
     }
 
-    @Test func previousPacingBalancesRemainLoadable() throws {
+    @Test func legacyEconomyMigratesOnceAndBacksUpExactOriginal() throws {
         var s = owned(.usagi, stage: 9)
-        s.ticketProgress = 41_999_999
+        s.economyVersion = nil
+        s.ticketProgress = 31_500_000
         s.tickets = 3
-        s.houses[.usagi]!.progress = 50_000_000
+        s.houses[.usagi]!.progress = 67_500_000 // 150% of next cost
         let url = tempDir().appendingPathComponent("state.json")
         try Store.save(s, to: url)
-        #expect(Store.load(url) == s)
-        #expect(s.build() == [.piece(.usagi, stage: 10)])
-        #expect(s.currentHouse?.progress == 5_000_000)
+        let original = try Data(contentsOf: url)
+        var migrated = try Store.loadOrRecover(url, now: now)
+        #expect(migrated.currentHouse?.stage == 9)
+        #expect(migrated.currentHouse?.progress == 1_950_000)
+        #expect(migrated.ticketProgress == 75_000)
+        #expect(migrated.tickets == 3)
+        #expect(migrated.scan == s.scan)
+        #expect(migrated.dayTotals == s.dayTotals)
+        let backups = try FileManager.default.contentsOfDirectory(at: url.deletingLastPathComponent(), includingPropertiesForKeys: nil).filter { $0.lastPathComponent.hasPrefix("state.before-economy-v2-") }
+        #expect(backups.count == 1)
+        #expect(try Data(contentsOf: backups[0]) == original)
+        try Store.save(migrated, to: url)
+        #expect(try Store.loadOrRecover(url, now: now) == migrated)
+        #expect(migrated.build() == [.piece(.usagi, stage: 10)])
+        #expect(migrated.currentHouse?.progress == 650_000)
     }
 
-    @Test func dailyAchievementsTrackClicksAndResetWithoutLosingProgress() throws {
+    @Test func dailyAchievementsTrackManualMovesAndResetWithoutLosingProgress() throws {
         var s = owned(.hachiware)
         s.houses[.hachiware]!.progress = 500_000
         s.observeProgress(at: now)
@@ -431,9 +444,163 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
         #expect(loaded.progressToday(for: .chiikawa, at: now)?.upgrades == 0)
     }
 
+    @Test func legacyCompletedHouseCanReachPenthouseWithoutReset() throws {
+        var s = owned(.chiikawa, stage: 12)
+        s.tickets = 4
+        let url = tempDir().appendingPathComponent("state.json")
+        try Store.save(s, to: url)
+        s = try #require(Store.load(url))
+        #expect(s.currentHouse?.stage == 12)
+        #expect(s.currentHouse?.isComplete == false)
+        s.credit([ev(HousePlan.cost(ofStage: 13))])
+        #expect(s.currentHouse?.stage == 12)
+        s.build(at: now)
+        #expect(s.currentHouse == House(stage: 13))
+        #expect(s.tickets >= 4)
+        try Store.save(s, to: url)
+        #expect(Store.load(url) == s)
+    }
+
+    @Test func nonPositiveOrOldEventsCannotConstructHomes() {
+        var s = owned(.chiikawa)
+        let before = s
+        let result = s.credit([ev(0), ev(-100), ev(HousePlan.totalCost, at: now.addingTimeInterval(-172800))])
+        #expect(result.isEmpty)
+        #expect(s == before)
+    }
+
+    @Test func randomArrivalIsStableBoundedAndActuallyOccurs() {
+        for friend in FriendID.allCases {
+            let values = (0..<12000).map { ArrivalMotion.scale(at: Double($0) / 100, friend: friend) }
+            #expect(values.allSatisfy { $0 >= 0.86 && $0 <= 1.08 })
+            #expect(values.contains { $0 < 0.9 })
+            #expect(values.contains { $0 > 1.06 })
+            #expect(values.filter { $0 == 1 }.count > 11000)
+            #expect(ArrivalMotion.scale(at: 25.123, friend: friend) == ArrivalMotion.scale(at: 25.123, friend: friend))
+        }
+        #expect(ArrivalMotion.spring(elapsed: -1) == 1)
+        #expect(ArrivalMotion.spring(elapsed: 1.1) == 1)
+    }
+
+    @Test func motionHasNoPopsOrTeleportingAtBoundaries() {
+        for friend in FriendID.allCases {
+            let values = (0...60000).map { ArrivalMotion.scale(at: Double($0) / 1000, friend: friend) }
+            for pair in zip(values, values.dropFirst()) { #expect(abs(pair.1 - pair.0) < 0.003) }
+        }
+        #expect(ArrivalMotion.lift(elapsed: 0) == 0)
+        #expect(ArrivalMotion.lift(elapsed: 0.45) > 11.9)
+        #expect(ArrivalMotion.lift(elapsed: 0.72) == 0)
+        #expect(ArrivalMotion.ease(-1) == 0)
+        #expect(ArrivalMotion.ease(2) == 1)
+    }
+
     @Test func tokenFormat() {
         #expect(TokenFormat.short(1_234_567) == "1.2M")
         #expect(TokenFormat.short(12_345) == "12K")
         #expect(TokenFormat.short(999) == "999")
+    }
+}
+
+@Suite struct HomeWanderTests {
+    @Test func remainsOnClearFloorWithoutTeleporting() {
+        for friend in FriendID.allCases {
+            var previous = HomeWander.position(at: 0, friend: friend)
+            for tick in 1...7200 {
+                let point = HomeWander.position(at: Double(tick) / 100, friend: friend)
+                #expect((0.359...0.641).contains(point.x))
+                #expect((0.714...0.741).contains(point.y))
+                #expect(abs(point.x - previous.x) < 0.001)
+                #expect(abs(point.y - previous.y) < 0.001)
+                #expect(abs(point.bounce - previous.bounce) < 0.15)
+                previous = point
+            }
+        }
+    }
+    @Test func reducedMotionKeepsFriendStill() {
+        let start = HomeWander.position(at: 0, friend: .chiikawa, reduced: true)
+        let later = HomeWander.position(at: 1000, friend: .chiikawa, reduced: true)
+        #expect(start.x == later.x && start.y == later.y)
+        #expect(later.bounce == 0 && later.lean == 0)
+    }
+}
+
+@Test func mangaExpressionsStayWithinCharacterEvidence() {
+    for friend in FriendID.allCases {
+        for stage in 1...13 {
+            for time in stride(from: 0.0, through: 48, by: 0.5) {
+                for responding in [false, true] {
+                    let selected = MangaExpression.select(friend: friend, stage: stage, time: time, responding: responding)
+                    #expect(MangaExpression.allowed(for: friend).contains(selected))
+                    if friend != .chiikawa { #expect(selected != .cry) }
+                    if stage > 2 || responding { #expect(selected != .cry) }
+                }
+            }
+        }
+    }
+    #expect(MangaExpression.select(friend: .chiikawa, stage: 1, time: 1, responding: false) == .cry)
+    #expect(MangaExpression.select(friend: .chiikawa, stage: 1, time: 1, responding: true) == .relief)
+    #expect(MangaExpression.select(friend: .usagi, stage: 13, time: 1, responding: true) == .base)
+    #expect(MangaExpression.greeting.asset(for: .usagi) == "usagi")
+}
+
+@Test func continuousHouseRevealFinishesWithoutSeamsOrOvershoot() {
+    var previous = 0.0
+    for time in stride(from: -1.0, through: HomeAssembly.duration, by: 0.01) {
+        let progress = HomeAssembly.reveal(elapsed: time)
+        #expect(progress >= previous && progress >= 0 && progress <= 1)
+        #expect(HomeAssembly.scale(elapsed: time) > 0.9 && HomeAssembly.scale(elapsed: time) < 1.04)
+        previous = progress
+    }
+    #expect(HomeAssembly.reveal(elapsed: HomeAssembly.duration) == 1)
+    #expect(HomeAssembly.scale(elapsed: HomeAssembly.duration) == 1)
+    #expect(HomeAssembly.settle(elapsed: HomeAssembly.duration) == 0)
+    #expect(HomeAssembly.settle(elapsed: 2.6, reduced: true) == 0)
+}
+
+@Test func everyAllowedExpressionHasPackagedArtworkAndAuthorReference() throws {
+    let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Art/Sprites/Manga")
+    let data = try Data(contentsOf: root.appendingPathComponent("catalog.json"))
+    let entries = try #require(JSONSerialization.jsonObject(with: data) as? [[String: Any]])
+    let ids = entries.compactMap { $0["id"] as? String }
+    #expect(Set(ids).count == ids.count)
+    for friend in FriendID.allCases {
+        for expression in MangaExpression.allowed(for: friend) {
+            let id = expression.asset(for: friend)
+            let entry = try #require(entries.first { $0["id"] as? String == id })
+            let source = try #require(entry["source"] as? String)
+            #expect(source.hasPrefix("https://x.com/ngnchiikawa/status/"))
+            let asset = try #require(entry["asset"] as? String)
+            let png = try Data(contentsOf: root.appendingPathComponent(asset))
+            #expect(Array(png.prefix(8)) == [137,80,78,71,13,10,26,10])
+            let crop = try #require(entry["crop"] as? [Double])
+            #expect(crop.count == 4 && crop[2] > crop[0] && crop[3] > crop[1])
+        }
+    }
+}
+
+@Test func surplusRefillWaitsForMoveThenSettlesAtExactTarget() {
+    let start = Date(timeIntervalSince1970: 100)
+    let event = UpgradeCarryover(friend: .chiikawa, stage: 3, amount: 2_000_000, startsAt: start)
+    #expect(event.displayedFraction(target: 0.5, at: start.addingTimeInterval(-1), reduceMotion: false) == 0)
+    var previous = 0.0
+    for elapsed in stride(from: 0.0, through: 2, by: 0.02) {
+        let value = event.displayedFraction(target: 0.5, at: start.addingTimeInterval(elapsed), reduceMotion: false)
+        #expect(value >= previous && value <= 0.5)
+        previous = value
+    }
+    #expect(previous == 0.5)
+    #expect(event.displayedFraction(target: 0.5, at: start, reduceMotion: true) == 0.5)
+    #expect(!event.isAnimating(at: start.addingTimeInterval(2)))
+}
+
+
+@Test func displayedDrawOddsMatchEveryRollBucket() {
+    let buckets = (0..<DrawOdds.totalWeight).map { DrawOdds.friend(for: $0) }
+    #expect(DrawOdds.totalWeight == 100)
+    #expect(Set(DrawOdds.ranked) == Set(FriendID.allCases))
+    for (index, friend) in DrawOdds.ranked.enumerated() {
+        #expect(buckets.filter { $0 == friend }.count == DrawOdds.weights[index])
+        #expect(DrawOdds.probability(of: friend, firstDraw: true) == DrawOdds.probability(of: friend))
+        if index > 0 { #expect(DrawOdds.weights[index] > DrawOdds.weights[index - 1]) }
     }
 }
