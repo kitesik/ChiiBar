@@ -28,6 +28,17 @@ enum Previews {
         }
         let sz = HouseArt.size
 
+        if ProcessInfo.processInfo.environment["CHIIBAR_FRIENDS_ONLY"] == "1" {
+            let model = fixtureModel(lastTokenAgo: 60)
+            for friend in FriendID.allCases {
+                model.state.houses[friend] = House(stage: 3)
+                save("profile_\(friend.rawValue)", CGSize(width: 340, height: 710), FriendDetailView(model: model, friend: friend))
+            }
+            model.state.houses.removeValue(forKey: .pajamaGreen)
+            save("profile_unknown", CGSize(width: 340, height: 710), FriendDetailView(model: model, friend: .pajamaGreen))
+            return
+        }
+
         if ProcessInfo.processInfo.environment["CHIIBAR_WEATHER_ONLY"] == "1" {
             for weather in [HomeWeather.rain, .snow] {
                 for stage in [1, 3, 9] {
@@ -45,7 +56,7 @@ enum Previews {
             for stage in 1...13 {
                 save("stage_\(stage)", sz, scene(SceneParams(friend: .hachiware, stage: stage, activity: .tea, t: t0)))
             }
-            save("menu-faces", CGSize(width: 270, height: 40), HStack(spacing: 8) {
+            save("menu-faces", CGSize(width: 460, height: 40), HStack(spacing: 8) {
                 ForEach(FriendID.allCases, id: \.self) { friend in
                     if let icon = SpriteArt.menuImage(for: friend) { Image(nsImage: icon) }
                 }
@@ -85,7 +96,7 @@ enum Previews {
             model.state.current = .kurimanju
             model.state.houses[.kurimanju] = House(stage: 1, progress: 5000)
             save("home", CGSize(width: 340, height: 710), PopoverView(model: model))
-            save("odds", CGSize(width: 316, height: 510), DrawOddsCard(firstDraw: false).background(Theme.background))
+            save("odds", CGSize(width: 316, height: 840), DrawOddsCard(firstDraw: false).background(Theme.background))
             model.state.houses[.kurimanju] = House(stage: 1, progress: 20000)
             save("ready", CGSize(width: 340, height: 710), PopoverView(model: model))
             for elapsed in [1.0, 3.6, 5.2] {
@@ -97,8 +108,8 @@ enum Previews {
                 model.state.houses[friend] = House(stage: min(13, index + 5))
             }
             model.state.houses.removeValue(forKey: .anoko)
-            save("collection", CGSize(width: 316, height: 380), VStack(spacing: 10) {
-                ForEach(0..<3) { row in
+            save("collection", CGSize(width: 316, height: 640), VStack(spacing: 10) {
+                ForEach(0..<5) { row in
                     HStack(spacing: 8) {
                         ForEach(0..<3) { column in
                             CollectionCard(model: model, friend: DrawOdds.displayOrder[row * 3 + column])

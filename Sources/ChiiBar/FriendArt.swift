@@ -21,6 +21,12 @@ enum Ink {
 extension FriendID {
     var fur: Color {
         switch self {
+        case .pajamaGreen: Ink.rgb(0xB9DFCC)
+        case .pajamaPink: Ink.rgb(0xF2C7D6)
+        case .pajamaWhite: Ink.rgb(0xF7F4E9)
+        case .pajamaPurple: Ink.rgb(0xC9C0DF)
+        case .pochette: Ink.rgb(0xBFC8CF)
+        case .labor: Ink.rgb(0xBFC8CF)
         case .chiikawa: Ink.rgb(0xFFFEFC)
         case .hachiware: Ink.rgb(0xFFFFFF)
         case .usagi: Ink.rgb(0xFFF0BD)
@@ -36,6 +42,12 @@ extension FriendID {
     /// Second colour: cap, mane or face patch.
     var accent: Color {
         switch self {
+        case .pajamaGreen: Ink.rgb(0xB9DFCC)
+        case .pajamaPink: Ink.rgb(0xF2C7D6)
+        case .pajamaWhite: Ink.rgb(0xF7F4E9)
+        case .pajamaPurple: Ink.rgb(0xC9C0DF)
+        case .pochette: Ink.rgb(0xBFC8CF)
+        case .labor: Ink.rgb(0xBFC8CF)
         case .chiikawa: Ink.rgb(0xF4ECE0)
         case .hachiware: Ink.rgb(0x6B7C98)
         case .usagi: Ink.rgb(0xF5DE96)
@@ -50,6 +62,12 @@ extension FriendID {
 
     var chipTint: Color {
         switch self {
+        case .pajamaGreen: Ink.rgb(0xB9DFCC)
+        case .pajamaPink: Ink.rgb(0xF2C7D6)
+        case .pajamaWhite: Ink.rgb(0xF7F4E9)
+        case .pajamaPurple: Ink.rgb(0xC9C0DF)
+        case .pochette: Ink.rgb(0xBFC8CF)
+        case .labor: Ink.rgb(0xBFC8CF)
         case .chiikawa: Ink.rgb(0xFFE3EA)
         case .hachiware: Ink.rgb(0xDDE6F5)
         case .usagi: Ink.rgb(0xFFF2C4)
@@ -160,7 +178,7 @@ enum FriendArt {
 
     private static func backOfHead(_ c: GraphicsContext, _ f: FriendID, _ s: CGFloat, _ lw: CGFloat) {
         switch f {
-        case .anoko, .kani: break // Drawn by AdditionalFriendSprites before this fallback.
+        case .anoko, .kani, .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple, .pochette, .labor: break // Drawn by AdditionalFriendSprites before this fallback.
         case .chiikawa:
             for sx in [-1.0, 1.0] { paint(c, ell(sx * 0.29 * s, -1.06 * s, 0.24 * s, 0.24 * s), f.fur, lw) }
         case .hachiware:

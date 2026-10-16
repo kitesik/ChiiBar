@@ -31,6 +31,7 @@ public enum Tuning {
 
 public enum FriendID: String, Codable, CaseIterable, Sendable {
     case chiikawa, hachiware, usagi, momonga, kurimanju, rakko, shisa, anoko, kani
+    case pajamaGreen, pajamaPink, pajamaWhite, pajamaPurple, pochette, labor
 
     public var name: String {
         switch self {
@@ -43,6 +44,12 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         case .shisa: "시사"
         case .anoko: "아노코"
         case .kani: "카니"
+        case .pajamaGreen: "초록 파자마"
+        case .pajamaPink: "분홍 파자마"
+        case .pajamaWhite: "하얀 파자마"
+        case .pajamaPurple: "보라 파자마"
+        case .pochette: "포셰트 갑옷"
+        case .labor: "노동 갑옷"
         }
     }
 
@@ -58,14 +65,20 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
         case .shisa: "シーサー"
         case .anoko: "あのこ"
         case .kani: "古本屋"
+        case .pajamaGreen: "パジャマパーティーズ・みどり"
+        case .pajamaPink: "パジャマパーティーズ・ぴんく"
+        case .pajamaWhite: "パジャマパーティーズ・しろ"
+        case .pajamaPurple: "パジャマパーティーズ・むらさき"
+        case .pochette: "ポシェットの鎧さん"
+        case .labor: "労働の鎧さん"
         }
     }
 
     public var rarity: Int {
         switch self {
         case .chiikawa, .usagi, .hachiware: 3
-        case .momonga, .kurimanju, .shisa: 2
-        case .kani, .rakko, .anoko: 1
+        case .momonga, .kurimanju, .shisa, .pochette, .labor: 2
+        case .kani, .rakko, .anoko, .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple: 1
         }
     }
 
@@ -78,8 +91,8 @@ extension FriendID: CodingKeyRepresentable {}
 public enum DrawOdds {
     // Mascot-first game design: Chiikawa is the rarest; these are not popularity-poll shares.
     public static var displayOrder: [FriendID] { ranked.reversed() }
-    public static let ranked: [FriendID] = [.chiikawa, .usagi, .hachiware, .momonga, .kurimanju, .shisa, .kani, .rakko, .anoko]
-    public static let weights = [2, 3, 5, 7, 10, 13, 16, 20, 24]
+    public static let ranked: [FriendID] = [.chiikawa, .usagi, .hachiware, .momonga, .kurimanju, .shisa, .pochette, .labor, .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple, .kani, .rakko, .anoko]
+    public static let weights = [2, 3, 5, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8]
     public static var totalWeight: Int { weights.reduce(0, +) }
     public static func friend(for roll: Int) -> FriendID {
         precondition((0..<totalWeight).contains(roll))

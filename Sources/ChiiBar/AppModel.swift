@@ -10,6 +10,7 @@ enum AppTab: String, CaseIterable { case home = "집", friends = "친구" }
 
 @MainActor
 final class AppModel: ObservableObject {
+    @Published var inspectedFriend: FriendID?
     @Published var arrivalStart: Date?
     private var progressTransition: (friend: FriendID, house: House, start: Date)?
     let isDemo: Bool

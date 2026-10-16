@@ -110,6 +110,12 @@ enum ActivityArt {
             if blink { pose.eyes = .closed }
         }
         switch f {
+        case .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple:
+            pose.tilt += sin(phase * 2.2) * 0.04
+            if free { pl.base.y -= max(0, sin(phase * 2.2)) * 2 }
+        case .pochette, .labor:
+            pose.tilt *= 0.4
+            pose.squish = 1 + (pose.squish - 1) * 0.3
         case .chiikawa:
             pose.tilt += sin(phase * 25) * (free ? 0.017 : 0.005)
             if free {

@@ -32,6 +32,10 @@ extension FriendID {
 
     private var dialogueSet: DialogueSet {
         switch self {
+        case .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple:
+            DialogueSet(greeting: ["♪"], poke: ["…♪!"], building: ["하나, 둘…♪"], upgraded: ["와…!"], completed: ["♪ ♫"], gift: ["함께…♪"])
+        case .pochette, .labor:
+            DialogueSet(greeting: ["어서 와."], poke: ["무슨 일이야?"], building: ["차근차근 해 보자."], upgraded: ["제법 아늑해졌네."], completed: ["수고했어."], gift: ["여기에 보태면 좋겠네."])
         case .chiikawa:
             DialogueSet(greeting: ["와… 와아…", "…응!"],
                         poke: ["에… 엣!?", "와…!", "으응…"],

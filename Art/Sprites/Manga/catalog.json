@@ -238,5 +238,89 @@
       1278
     ],
     "asset": "hachiware-greeting.png"
+  },
+  {
+    "id": "pajamaGreen",
+    "friend": "pajamaGreen",
+    "expression": "base",
+    "source": "https://www.anime-chiikawa.jp/chara.html",
+    "asset": "pajamaGreen.png",
+    "crop": [
+      310,
+      247,
+      929,
+      1027
+    ],
+    "provenance": "Original generated fan sprite; official character guide consulted for costume and identifying features. No official artwork embedded."
+  },
+  {
+    "id": "pajamaPink",
+    "friend": "pajamaPink",
+    "expression": "base",
+    "source": "https://www.anime-chiikawa.jp/chara.html",
+    "asset": "pajamaPink.png",
+    "crop": [
+      218,
+      264,
+      1015,
+      1017
+    ],
+    "provenance": "Original generated fan sprite; official character guide consulted for costume and identifying features. No official artwork embedded."
+  },
+  {
+    "id": "pajamaPurple",
+    "friend": "pajamaPurple",
+    "expression": "base",
+    "source": "https://www.anime-chiikawa.jp/chara.html",
+    "asset": "pajamaPurple.png",
+    "crop": [
+      212,
+      202,
+      1038,
+      1140
+    ],
+    "provenance": "Original generated fan sprite; official character guide consulted for costume and identifying features. No official artwork embedded."
+  },
+  {
+    "id": "pajamaWhite",
+    "friend": "pajamaWhite",
+    "expression": "base",
+    "source": "https://www.anime-chiikawa.jp/chara.html",
+    "asset": "pajamaWhite.png",
+    "crop": [
+      277,
+      166,
+      953,
+      1080
+    ],
+    "provenance": "Original generated fan sprite; official character guide consulted for costume and identifying features. No official artwork embedded."
+  },
+  {
+    "id": "pochette",
+    "friend": "pochette",
+    "expression": "base",
+    "source": "https://www.anime-chiikawa.jp/chara.html",
+    "asset": "pochette.png",
+    "crop": [
+      197,
+      60,
+      826,
+      1451
+    ],
+    "provenance": "Original generated fan sprite; official character guide consulted for costume and identifying features. No official artwork embedded."
+  },
+  {
+    "id": "labor",
+    "friend": "labor",
+    "expression": "base",
+    "source": "https://www.anime-chiikawa.jp/chara.html",
+    "asset": "labor.png",
+    "crop": [
+      78,
+      36,
+      837,
+      1467
+    ],
+    "provenance": "Original generated fan sprite; official character guide consulted for costume and identifying features. No official artwork embedded."
   }
 ]

@@ -57,12 +57,12 @@ struct DrawOddsCard: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("친구별 뽑기 확률").font(.system(size: 13, weight: .heavy, design: .rounded))
                 Spacer()
-                Text("전체 9명").font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
+                Text("전체 \(FriendID.allCases.count)명").font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
             }.padding(.horizontal, 2)
             ForEach([1, 2, 3], id: \.self) { tier in
                 RarityPackRow(tier: tier)
             }
-            Text(firstDraw ? "첫 뽑기도 같은 확률 · 9명 모두 만날 수 있어요" : "매번 같은 확률 · 이미 만난 친구도 나와요")
+            Text(firstDraw ? "첫 뽑기도 같은 확률 · \(FriendID.allCases.count)명 모두 만날 수 있어요" : "매번 같은 확률 · 이미 만난 친구도 나와요")
                 .font(.system(size: 9)).foregroundStyle(Theme.soft)
                 .fixedSize(horizontal: false, vertical: true).padding(.horizontal, 2)
         }
@@ -92,7 +92,7 @@ private struct RarityPackRow: View {
                 }.foregroundStyle(finish.emblem)
             }.padding(.horizontal, 10).padding(.vertical, 5)
                 .background(LinearGradient(colors: [Ink.rgb(0x374351), Ink.rgb(0x202834)], startPoint: .leading, endPoint: .trailing))
-            HStack(spacing: 7) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 7), count: 3), spacing: 7) {
                 ForEach(DrawOdds.displayOrder.filter { $0.rarity == tier }, id: \.self) { friend in
                     OddsCollectorCard(friend: friend, finish: finish)
                 }
@@ -120,7 +120,7 @@ private struct OddsCollectorCard: View {
                     .shadow(color: finish.ink.opacity(0.12), radius: 0, y: 2)
             }.frame(height: 46)
             VStack(spacing: 3) {
-                Text(friend.name).font(.system(size: 10, weight: .bold)).lineLimit(1)
+                Text(friend.name).font(.system(size: 10, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
                     Text("\(Int((DrawOdds.probability(of: friend) * 100).rounded()))")
                         .font(.system(size: 18, weight: .black, design: .rounded).width(.condensed))

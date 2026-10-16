@@ -599,7 +599,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
             let id = expression.asset(for: friend)
             let entry = try #require(entries.first { $0["id"] as? String == id })
             let source = try #require(entry["source"] as? String)
-            #expect(source.hasPrefix("https://x.com/ngnchiikawa/status/"))
+            #expect(source.hasPrefix("https://x.com/ngnchiikawa/status/") || source == "https://www.anime-chiikawa.jp/chara.html")
             let asset = try #require(entry["asset"] as? String)
             let png = try Data(contentsOf: root.appendingPathComponent(asset))
             #expect(Array(png.prefix(8)) == [137,80,78,71,13,10,26,10])
@@ -637,7 +637,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
     for (index, friend) in DrawOdds.ranked.enumerated() {
         #expect(buckets.filter { $0 == friend }.count == DrawOdds.weights[index])
         #expect(DrawOdds.probability(of: friend, firstDraw: true) == DrawOdds.probability(of: friend))
-        if index > 0 { #expect(DrawOdds.weights[index] > DrawOdds.weights[index - 1]) }
+        if index > 0 { #expect(DrawOdds.weights[index] >= DrawOdds.weights[index - 1]) }
     }
 }
 
@@ -659,4 +659,20 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
     #expect(HomeWeather.snow.reaction(friend: .usagi, stage: 1) == .play)
     #expect(HomeWeather.snow.reaction(friend: .kurimanju, stage: 1) == .shiver)
     #expect(HomeWeather.snow.reaction(friend: .rakko, stage: 1) == .calm)
+}
+
+@Test func expandedRosterProfilesAndSaveRoundTrip() throws {
+    #expect(FriendID.allCases.count == 15)
+    for friend in FriendID.allCases {
+        #expect(!friend.profile.isEmpty)
+        #expect(!friend.profileTags.isEmpty)
+        #expect(friend.profileSource.host == "www.anime-chiikawa.jp")
+    }
+    var state = GameState(now: Date(timeIntervalSince1970: 0))
+    for friend in FriendID.allCases { state.houses[friend] = House(stage: 4, progress: 12345) }
+    state.current = .pochette
+    let restored = try JSONDecoder().decode(GameState.self, from: JSONEncoder().encode(state))
+    #expect(restored == state)
+    #expect(restored.houses[.chiikawa]?.progress == 12345)
+    #expect(restored.houses[.pajamaGreen]?.stage == 4)
 }

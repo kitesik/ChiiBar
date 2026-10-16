@@ -21,7 +21,7 @@ enum SpriteArt {
               let entries = try? JSONDecoder().decode([Entry].self, from: data) else { return [:] }
         var result: [String: CGImage] = [:]
         for entry in entries {
-            guard entry.source.hasPrefix("https://x.com/ngnchiikawa/status/"), entry.crop.count == 4,
+            guard (entry.source.hasPrefix("https://x.com/ngnchiikawa/status/") || entry.source == "https://www.anime-chiikawa.jp/chara.html"), entry.crop.count == 4,
                   let original = NSImage(contentsOf: root.appendingPathComponent(entry.asset)),
                   let cg = original.cgImage(forProposedRect: nil, context: nil, hints: nil),
                   let trimmed = cg.cropping(to: CGRect(x: entry.crop[0], y: entry.crop[1],
@@ -52,6 +52,7 @@ enum SpriteArt {
         guard let image = images[friend.rawValue] else { return nil }
         let crop: CGRect
         switch friend {
+        case .pochette, .labor: crop = CGRect(x: 0.22, y: 0, width: 0.58, height: 0.27)
         case .usagi: crop = CGRect(x: 0, y: 0.18, width: 1, height: 0.59)
         case .anoko: crop = CGRect(x: 0, y: 0, width: 0.84, height: 0.54)
         case .momonga: crop = CGRect(x: 0, y: 0, width: 0.76, height: 0.72)
@@ -169,7 +170,7 @@ enum SpriteArt {
         c.translateBy(x: base.x, y: base.y)
         c.rotate(by: .radians(pose.tilt))
         c.scaleBy(x: 1 + (1 - pose.squish) * 0.6, y: pose.squish)
-        let height = size * (friend == .usagi ? 1.65 : friend == .anoko ? 1.5 : 1.35)
+        let height = size * ((friend == .pochette || friend == .labor) ? 1.9 : friend == .usagi ? 1.65 : friend == .anoko ? 1.5 : 1.35)
         let width = height * CGFloat(image.width) / CGFloat(image.height)
         var resolved = c.resolve(Image(decorative: image, scale: 1))
         if silhouette { resolved.shading = .color(.black) }

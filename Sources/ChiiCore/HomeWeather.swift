@@ -37,9 +37,9 @@ public enum HomeWeather: String, CaseIterable, Sendable {
             switch friend {
             case .chiikawa: return .tearful
             case .usagi, .anoko: return .play
-            case .hachiware, .rakko: return .calm
+            case .hachiware, .rakko, .pochette, .labor: return .calm
             case .momonga: return .fuss
-            case .kurimanju, .shisa, .kani: return .shiver
+            case .kurimanju, .shisa, .kani, .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple: return .shiver
             }
         }
         switch friend {
@@ -47,7 +47,8 @@ public enum HomeWeather: String, CaseIterable, Sendable {
         case .chiikawa, .shisa: return .curious
         case .momonga: return .fuss
         case .kurimanju: return Self.sheltered(stage: stage) ? .calm : .shiver
-        case .rakko: return .calm
+        case .rakko, .pochette, .labor: return .calm
+        case .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple: return .play
         }
     }
 }

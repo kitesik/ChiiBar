@@ -86,9 +86,10 @@ struct PopoverView: View {
                     FirstFriendWelcome(model: model)
                 } else { HomeView(model: model) }
             }
-            .allowsHitTesting(model.gacha == nil)
-            .accessibilityHidden(model.gacha != nil)
+            .allowsHitTesting(model.gacha == nil && model.inspectedFriend == nil)
+            .accessibilityHidden(model.gacha != nil || model.inspectedFriend != nil)
             if let g = model.gacha { GachaOverlay(model: model, session: g) }
+            if let friend = model.inspectedFriend { FriendDetailView(model: model, friend: friend) }
             }
             if let demoModel {
                 AnyView(PopoverView(model: demoModel, closeDemo: { self.demoModel = nil }))
@@ -114,7 +115,7 @@ struct HomeView: View {
                         Button("경험치 받기") { model.demoGrow() }.disabled(model.building)
                         Button("쓰다듬기") { model.poke() }
                     }.buttonStyle(PrimaryActionStyle())
-                    Text("9명과 13단계 집을 자유롭게 체험해요. 실제 기록은 그대로예요.")
+                    Text("\(FriendID.allCases.count)명과 13단계 집을 자유롭게 체험해요. 실제 기록은 그대로예요.")
                         .font(.system(size: 10)).foregroundStyle(Theme.soft)
                 }.padding(.top, 12)
             } else { TodayDashboardView(model: model) }
@@ -505,7 +506,7 @@ struct FriendsView: View {
                         CollectionCard(model: model, friend: f)
                     }
                 }
-                Text("만난 친구를 선택하면 그 친구의 집으로 이동해요.")
+                Text("카드를 누르면 친구 소개를 볼 수 있어요.")
                     .font(.system(size: 10)).foregroundStyle(Theme.soft)
                 Spacer(minLength: 0)
             }.padding(.horizontal, 12).padding(.bottom, 12)
@@ -519,7 +520,7 @@ struct CollectionCard: View {
     var house: House? { model.state.houses[friend] }
     private var finish: CardFinish { CardFinish(tier: friend.rarity) }
     var body: some View {
-        Button { model.select(friend) } label: {
+        Button { model.inspectedFriend = friend } label: {
             VStack(spacing: 0) {
                 Canvas { ctx, size in
                     if house != nil {
@@ -532,7 +533,7 @@ struct CollectionCard: View {
                 .frame(height: 56)
                 .background(CardFoilBackground(finish: finish))
                 VStack(spacing: 3) {
-                    Text(friend.name).font(.system(size: 12, weight: .bold))
+                    Text(friend.name).font(.system(size: 12, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
                         .foregroundStyle(finish.ink)
                     Text(house.map { HousePlan.name(of: $0.stage) } ?? "미보유")
                         .font(.system(size: 9)).foregroundStyle(Theme.soft)
@@ -549,8 +550,8 @@ struct CollectionCard: View {
             .opacity(house == nil ? 0.65 : 1)
         }
         .shadow(color: finish.ink.opacity(0.14), radius: 0, y: 2)
-        .buttonStyle(.plain).disabled(house == nil || model.building)
-        .accessibilityLabel("\(friend.name), \(finish.name), \(house.map { HousePlan.name(of: $0.stage) } ?? "미보유"), \(house == nil ? "아직 만나지 않은 친구" : "집으로 이동")")
+        .buttonStyle(.plain).disabled(model.building)
+        .accessibilityLabel("\(friend.name), \(finish.name), \(house.map { HousePlan.name(of: $0.stage) } ?? "미보유"), \(house == nil ? "아직 만나지 않은 친구" : "친구 소개 보기")")
         .accessibilityAddTraits(model.state.current == friend ? .isSelected : [])
     }
 }
