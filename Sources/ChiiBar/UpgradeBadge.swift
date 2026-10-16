@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// A hand-drawn pastel reward badge, with illustrated counts and a readable ribbon label.
+/// A hand-drawn pastel reward badge; numeral artwork remains available for future use.
 struct UpgradeBadge: View {
     let count: Int
     private static let artwork: NSImage? = {
@@ -19,7 +19,9 @@ struct UpgradeBadge: View {
                     .scaledToFit()
                     .frame(width: 112, height: 108)
             }
-            IllustratedNumber(count: count)
+            StampNumber(text: max(0, count).formatted(), size: 52,
+                        colors: [Ink.rgb(0xFFF0BD), Ink.rgb(0xFFE3A0)], ink: Ink.rgb(0x77604C))
+                .frame(width: 76, height: 54)
                 .offset(y: -5)
             Text("업그레이드")
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 9))
@@ -34,7 +36,7 @@ struct UpgradeBadge: View {
     }
 }
 
-/// Rounded stamp lettering with a restrained paper highlight.
+/// Compact, hand-lettered counts with a warm ink edge, rendered as live text.
 struct StampNumber: View {
     let text: String
     let size: CGFloat
@@ -42,10 +44,13 @@ struct StampNumber: View {
     let ink: Color
     var body: some View {
         Text(text)
-            .font(.system(size: size, weight: .black, design: .rounded).width(.condensed))
-            .tracking(-0.8)
+            .font(.custom("ChalkboardSE-Bold", size: size))
+            .tracking(-1.4)
             .foregroundStyle(LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom))
-            .shadow(color: ink.opacity(0.7), radius: 0, y: 1)
-            .lineLimit(1)
+            .shadow(color: ink, radius: 0, x: -0.65, y: -0.65)
+            .shadow(color: ink, radius: 0, x: 0.65, y: -0.65)
+            .shadow(color: ink, radius: 0, x: -0.65, y: 0.65)
+            .shadow(color: ink, radius: 0, x: 0.65, y: 0.65)
+            .lineLimit(1).minimumScaleFactor(0.25)
     }
 }

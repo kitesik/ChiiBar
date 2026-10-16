@@ -20,3 +20,7 @@ Production numeral PNGs for the daily upgrade stamp, created with the built-in i
 ## Upright numerals (0.4.17)
 
 All 31 numeral images were regenerated with the built-in image_gen tool. Upright strokes, softly rounded corners, pale butter yellow fill and a warm brown outline replace the curled, extruded lettering. Each saved PNG is an unchanged generated original. The previous assets remain in Git history. See `upright-prompts.json` for provenance and the shared prompt.
+
+## Preserved artwork (0.4.21)
+
+The daily dashboard now renders both metrics as live Chalkboard SE text. All numeral PNGs, prompts and the IllustratedNumber renderer remain intact for possible later reuse. The pastel badge background is still used.

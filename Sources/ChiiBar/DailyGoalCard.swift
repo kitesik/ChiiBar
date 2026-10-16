@@ -19,16 +19,16 @@ struct DailyGoalCard: View {
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 10))
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, 4)
-            HStack(alignment: .firstTextBaseline, spacing: 3) {
+            HStack(alignment: .firstTextBaseline, spacing: 1) {
                 Text(percent)
-                    .font(.system(size: 32, weight: .heavy, design: .rounded))
-                    .monospacedDigit()
+                    .font(.custom("ChalkboardSE-Bold", size: 32))
+                    .tracking(-1.2)
                     .foregroundStyle(Ink.rgb(0x477CA0))
                     .contentTransition(.numericText())
                     .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: percent)
                     .lineLimit(1).minimumScaleFactor(0.35)
                 Text("%")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .font(.custom("ChalkboardSE-Bold", size: 12))
                     .foregroundStyle(Ink.rgb(0x776454))
                     .fixedSize()
             }
