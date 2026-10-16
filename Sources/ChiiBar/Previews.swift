@@ -33,6 +33,9 @@ enum Previews {
             model.state.current = .kurimanju
             model.state.houses[.kurimanju] = House(stage: 1, progress: 5000)
             save("home", CGSize(width: 340, height: 640), PopoverView(model: model))
+            save("odds", CGSize(width: 316, height: 445), DrawOddsCard(firstDraw: false).background(Theme.background))
+            model.state.houses[.kurimanju] = House(stage: 1, progress: 20000)
+            save("ready", CGSize(width: 340, height: 640), PopoverView(model: model))
             for elapsed in [1.0, 3.6, 5.2] {
                 let session = GachaSession(start: now.addingTimeInterval(-elapsed), result: DrawResult(friend: .kurimanju, outcome: .newFriend))
                 model.gacha = session

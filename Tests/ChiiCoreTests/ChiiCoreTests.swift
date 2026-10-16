@@ -597,6 +597,11 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
 @Test func displayedDrawOddsMatchEveryRollBucket() {
     let buckets = (0..<DrawOdds.totalWeight).map { DrawOdds.friend(for: $0) }
     #expect(DrawOdds.totalWeight == 100)
+    #expect(buckets.filter { $0 == .chiikawa }.count == 2)
+    #expect(FriendID.chiikawa.rarity == 3)
+    #expect(FriendID.allCases.filter { $0 != .chiikawa }.allSatisfy {
+        DrawOdds.probability(of: $0) > DrawOdds.probability(of: .chiikawa)
+    })
     #expect(Set(DrawOdds.ranked) == Set(FriendID.allCases))
     for (index, friend) in DrawOdds.ranked.enumerated() {
         #expect(buckets.filter { $0 == friend }.count == DrawOdds.weights[index])

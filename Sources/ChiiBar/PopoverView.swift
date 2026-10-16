@@ -58,7 +58,10 @@ struct PopoverView: View {
                 HStack(spacing: 4) {
                     ForEach(AppTab.allCases, id: \.self) { tab in
                         Button { model.tab = tab } label: {
-                            Label(tab.rawValue, systemImage: tab == .home ? "house.fill" : "person.2.fill").font(.system(size: 13, weight: .bold))
+                            HStack(spacing: 5) {
+                                GameSymbol(kind: tab == .home ? .home : .friends)
+                                Text(tab.rawValue)
+                            }.font(.system(size: 13, weight: .bold))
                                 .frame(maxWidth: .infinity, minHeight: 32)
                                 .foregroundStyle(model.tab == tab ? Theme.text : Theme.soft)
                                 .background(model.tab == tab ? Ink.rgb(0xFFFCF2) : Color.clear, in: RoundedRectangle(cornerRadius: 9))
@@ -303,8 +306,7 @@ struct UpgradeButton: View {
             Button { model.buildHouse() } label: {
                 HStack(spacing: 4) {
                     if ready {
-                        Image(systemName: "house.fill")
-                            .padding(3).background(.white.opacity(0.55), in: Circle())
+                        GameSymbol(kind: .home)
                     }
                     Text(model.building ? "새 집을 짓고 있어요…" : ready ? "새 집으로 업그레이드" : "경험치 반영 중…")
                     if ready { Image(systemName: "sparkles").opacity(0.7 + pulse * 0.3) }
@@ -570,8 +572,10 @@ struct GachaOverlay: View {
                 let ready = reduceMotion || date.timeIntervalSince(session.start) >= GachaArt.finishAt
                 if ready {
                     Button { model.finishGacha(reducedMotion: reduceMotion) } label: {
-                        Label("집으로", systemImage: "house.fill")
-                            .frame(width: 200, height: 24)
+                        HStack(spacing: 5) {
+                            GameSymbol(kind: .home)
+                            Text("집으로")
+                        }.frame(width: 200, height: 24)
                     }
                     .buttonStyle(PrimaryActionStyle())
                     .padding(.bottom, 44)

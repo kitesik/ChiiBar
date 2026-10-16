@@ -57,8 +57,8 @@ public enum FriendID: String, Codable, CaseIterable, Sendable {
 
     public var rarity: Int {
         switch self {
-        case .usagi, .hachiware, .momonga: 3
-        case .chiikawa, .kurimanju, .shisa: 2
+        case .chiikawa, .usagi, .hachiware: 3
+        case .momonga, .kurimanju, .shisa: 2
         case .kani, .rakko, .anoko: 1
         }
     }
@@ -70,8 +70,8 @@ extension FriendID: CodingKeyRepresentable {}
 
 /// Shared by the actual draw and the probability display.
 public enum DrawOdds {
-    // Dengeki Online's March 2026 reader poll order; weights are game design, not poll shares.
-    public static let ranked: [FriendID] = [.usagi, .hachiware, .momonga, .chiikawa, .kurimanju, .shisa, .kani, .rakko, .anoko]
+    // Mascot-first game design: Chiikawa is the rarest; these are not popularity-poll shares.
+    public static let ranked: [FriendID] = [.chiikawa, .usagi, .hachiware, .momonga, .kurimanju, .shisa, .kani, .rakko, .anoko]
     public static let weights = [2, 3, 5, 7, 10, 13, 16, 20, 24]
     public static var totalWeight: Int { weights.reduce(0, +) }
     public static func friend(for roll: Int) -> FriendID {
