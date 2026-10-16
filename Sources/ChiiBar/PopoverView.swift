@@ -176,16 +176,16 @@ struct HouseSceneView: View {
 struct FriendHeader: View {
     @ObservedObject var model: AppModel
     var body: some View {
-        HStack {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Text(model.state.current?.japaneseName ?? "")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(Ink.rgb(0x857789))
             Text(model.state.current?.name ?? "친구")
                 .font(.custom("AppleSDGothicNeo-Heavy", size: 19))
                 .tracking(-0.5)
                 .foregroundStyle(Ink.rgb(0x51404E))
                 .shadow(color: .white, radius: 0, y: 1)
-            Spacer(minLength: 8)
-            Text(model.state.current?.japaneseName ?? "")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(Ink.rgb(0x857789))
+            Spacer(minLength: 0)
         }.padding(.horizontal, 4)
     }
 }
@@ -245,14 +245,14 @@ struct StageProgress: View {
             HStack {
                 if !model.building && !house.isComplete {
                     Text("다음 집")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Theme.soft)
                     Text(HousePlan.pieceNames[house.stage])
-                        .font(.custom("AppleSDGothicNeo-Heavy", size: 14))
-                        .foregroundStyle(Ink.rgb(0x337D81))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Ink.rgb(0x795D70))
                 } else {
-                    Text(label).font(.custom("AppleSDGothicNeo-Heavy", size: 14))
-                        .foregroundStyle(Ink.rgb(0x337D81))
+                    Text(label).font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Ink.rgb(0x795D70))
                 }
                 Spacer()
             }
