@@ -44,11 +44,11 @@ cat > "$app/Contents/Info.plist" <<PLIST
 <dict>
     <key>CFBundleExecutable</key><string>ChiiBar</string>
     <key>CFBundleIdentifier</key><string>com.chiibar.app</string>
-    <key>CFBundleName</key><string>신분상승 토큰 치이카와</string>
-    <key>CFBundleDisplayName</key><string>신분상승 토큰 치이카와</string>
+    <key>CFBundleName</key><string>치이카와 키우기</string>
+    <key>CFBundleDisplayName</key><string>치이카와 키우기</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.4.24</string>
-    <key>CFBundleVersion</key><string>52</string>
+    <key>CFBundleShortVersionString</key><string>0.4.25</string>
+    <key>CFBundleVersion</key><string>53</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>

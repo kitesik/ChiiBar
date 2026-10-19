@@ -154,7 +154,7 @@ enum GachaArt {
         let detail: String
         switch result.outcome {
         case .newFriend:
-            line = "새로운 친구가 찾아왔어요"; detail = "이제 이 친구의 집도 지을 수 있어요"
+            line = "새로운 친구가 찾아왔어요"; detail = ""
         case .gift(let stage):
             line = "앗, 이미 만난 친구네요!"
             detail = "대신 \(result.friend.name)의 집 경험치 +\(TokenFormat.short(Tuning.duplicateGift(forStage: stage)))를 드릴게요."

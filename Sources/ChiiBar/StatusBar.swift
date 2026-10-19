@@ -31,8 +31,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         item.autosaveName = "ChiiBar.MainStatusItem"
         item.behavior = []
         item.isVisible = true
-        item.button?.toolTip = "신분상승 토큰 치이카와"
-        item.button?.setAccessibilityLabel("신분상승 토큰 치이카와")
+        item.button?.toolTip = "치이카와 키우기"
+        item.button?.setAccessibilityLabel("치이카와 키우기")
         item.button?.target = self
         item.button?.action = #selector(clicked)
         item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])

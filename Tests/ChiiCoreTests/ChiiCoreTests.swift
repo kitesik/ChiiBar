@@ -216,7 +216,7 @@ private func sum(_ e: [TokenEvent]) -> Int64 { e.reduce(0) { $0 + $1.tokens } }
     }
 
     @Test func allThirteenHomesRequireTwelveExplicitUpgrades() {
-        let names = ["비박", "움막집", "벽돌집", "굴뚝집", "울타리집", "마당집", "초가집", "양반집", "현대식집", "빌라", "아파트", "초고층 빌딩", "초고층 빌딩 펜트하우스"]
+        let names = ["비박", "움막집", "벽돌집", "굴뚝집", "울타리집", "마당집", "초가집", "양반집", "현대식집", "빌라", "아파트", "초고층 빌딩", "펜트하우스"]
         #expect(HousePlan.pieceNames == names)
         var prev: Int64 = 0
         for st in 2...13 {

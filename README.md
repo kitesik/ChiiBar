@@ -1,15 +1,17 @@
-# 신분상승 토큰 치이카와
+# 치이카와 키우기
 
-Claude Code와 Codex를 쓰는 동안, 치이카와 친구가 토큰을 먹고 비박부터 초고층 빌딩 펜트하우스까지 집을 지어 가는 macOS 팬 앱입니다.
+Claude Code와 Codex를 쓰는 동안, 치이카와 친구가 토큰을 먹고 비박부터 펜트하우스까지 집을 지어 가는 macOS 팬 앱입니다.
 토큰이 쌓여 게이지가 가득 차면 업그레이드 버튼을 눌러 한 단계씩 이사합니다. 남은 경험치는 새 집에서 이어 채워집니다.
 
-[![Mac용 다운로드](docs/download-mac.svg)](https://github.com/kitesik/ChiiBar/releases/download/v0.4.24/ChiiBar-0.4.24-universal.zip)
+[![Mac용 다운로드](docs/download-mac.svg)](https://github.com/kitesik/ChiiBar/releases/download/v0.4.25/ChiiBar-0.4.25-universal.zip)
 
 macOS 14 이상 · Apple Silicon / Intel 공용 · 무료
 
 [설치 방법과 첫 실행 안내](#설치) · [릴리스 보기](https://github.com/kitesik/ChiiBar/releases/latest)
 
-**v0.4.24 — 파자마파티즈를 한 팀으로, 총 10종의 친구.**
+**v0.4.25 — 이름을 치이카와 키우기로 바꿨습니다.**
+
+마지막 집 이름을 펜트하우스로 줄이고, 진행 막대 아래 오늘 기록을 "오늘 N% 올랐어요!"로 짧게 보여 줍니다. 새 친구를 뽑았을 때의 안내 문구를 정리했습니다.
 
 현재 집과 친구를 이전보다 130% 크게 표시합니다. 오늘의 대시보드는 제목·날짜 헤더, 업그레이드 횟수와 목표 달성률의 두 영역, 갈색 외곽선으로 묶었습니다. 업그레이드 버튼이 나타나도 하단이 잘리지 않도록 창 높이를 조정했습니다.
 
@@ -20,14 +22,14 @@ macOS 14 이상 · Apple Silicon / Intel 공용 · 무료
 
 ## 설치
 
-**현재는 테스트 배포입니다.** v0.4.24는 Apple Developer ID 서명·공증이 없어 다른 Mac에서 첫 실행이 차단될 수 있습니다. Homebrew로 설치해도 이 제한은 같습니다. [설치 테스트 결과와 개선 계획](docs/install-review.md)
+**현재는 테스트 배포입니다.** v0.4.25는 Apple Developer ID 서명·공증이 없어 다른 Mac에서 첫 실행이 차단될 수 있습니다. Homebrew로 설치해도 이 제한은 같습니다. [설치 테스트 결과와 개선 계획](docs/install-review.md)
 
 지원 환경: **macOS 14 Sonoma 이상**, Apple Silicon·Intel Mac. Windows에서는 실행되지 않습니다.
 별도 가입·API 키는 필요 없지만, 집을 키우려면 같은 Mac에서 Codex 또는 Claude Code를 사용해야 합니다. 일반 웹 채팅 사용량은 읽지 않습니다.
 
 ### 터미널 없이 직접 설치
 
-1. **[Mac용 다운로드](https://github.com/kitesik/ChiiBar/releases/download/v0.4.24/ChiiBar-0.4.24-universal.zip)**를 누르면 설치 ZIP 파일을 바로 받습니다.
+1. **[Mac용 다운로드](https://github.com/kitesik/ChiiBar/releases/download/v0.4.25/ChiiBar-0.4.25-universal.zip)**를 누르면 설치 ZIP 파일을 바로 받습니다.
 2. 다운로드한 ZIP을 두 번 클릭해 압축을 풉니다.
 3. `ChiiBar.app`을 Finder의 **응용 프로그램** 폴더로 옮깁니다. 기본 설치 위치는 `/Applications/ChiiBar.app`입니다.
 4. 응용 프로그램에서 **ChiiBar**를 실행합니다. 이 앱은 Dock에 창을 띄우는 대신 **화면 맨 위 메뉴 막대**에 작은 아이콘이 생깁니다. 아이콘을 눌러 **첫 친구 뽑기**를 시작하세요.
@@ -68,7 +70,7 @@ brew upgrade --cask kitesik/tap/chiibar
 ## 어떤 앱인가요?
 
 - **집:** 토큰으로 경험치를 쌓고, 업그레이드 버튼 한 번에 한 단계씩 집을 짓습니다. 남은 경험치는 다음 집으로 이어집니다.
-- **주거 순서:** 비박 → 움막집 → 벽돌집 → 굴뚝집 → 울타리집 → 마당집 → 초가집 → 양반집 → 현대식집 → 빌라 → 아파트 → 초고층 빌딩 → 초고층 빌딩 펜트하우스.
+- **주거 순서:** 비박 → 움막집 → 벽돌집 → 굴뚝집 → 울타리집 → 마당집 → 초가집 → 양반집 → 현대식집 → 빌라 → 아파트 → 초고층 빌딩 → 펜트하우스.
 - **건설 장면:** 업그레이드를 누르면 새 집이 지어지고 축하 연출이 이어집니다. 남은 경험치는 새 게이지에 채워집니다.
 - **캐릭터:** 10종의 친구가 집 안팎에서 쉬거나 움직입니다. 랏코·시사처럼 작게 보이던 친구는 크기와 선을 보강했습니다.
 - **친구:** 파자마파티즈 네 친구는 한 팀으로 만납니다. 갑옷 친구는 잠시 숨겨 총 10종입니다. 첫 뽑기는 무료입니다. 친구 모음 카드를 누르면 공식 소개를 요약한 도감이 열리고, 만난 친구의 집으로 이동할 수 있습니다.

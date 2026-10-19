@@ -120,7 +120,7 @@ public enum HousePlan {
     /// Name of each stage's piece, index = stage - 1.
     public static let pieceNames = [
         "비박", "움막집", "벽돌집", "굴뚝집", "울타리집", "마당집", "초가집",
-        "양반집", "현대식집", "빌라", "아파트", "초고층 빌딩", "초고층 빌딩 펜트하우스",
+        "양반집", "현대식집", "빌라", "아파트", "초고층 빌딩", "펜트하우스",
     ]
 
     public static func name(of stage: Int) -> String {

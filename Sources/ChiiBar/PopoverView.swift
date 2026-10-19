@@ -49,7 +49,7 @@ struct PopoverView: View {
             if demoModel == nil {
             VStack(spacing: 10) {
                 HStack {
-                    Text(model.isDemo ? "친구와 집 둘러보기" : "신분상승 토큰 치이카와").font(.system(size: 13, weight: .heavy))
+                    Text(model.isDemo ? "친구와 집 둘러보기" : "치이카와 키우기").font(.system(size: 13, weight: .heavy))
                     Spacer()
                     Button(model.isDemo ? "체험 끝내기" : "둘러보기") {
                         if model.isDemo { closeDemo?() } else { demoModel = AppModel.demo() }
@@ -270,7 +270,12 @@ struct StageProgress: View {
                         .contentShape(Rectangle())
                         .help(carryover?.explanation ?? "사용한 토큰이 경험치로 쌓여요. 가득 차면 업그레이드 버튼을 눌러 이사할 수 있어요.")
                     HStack {
-                        Text(baseline == nil ? "\(HousePlan.name(of: house.stage))" : "오늘 첫 확인 \(Int((baseline ?? 0) * 100))% → 지금 \(Int(displayed * 100))%")
+                        if let gain = baseline.map({ Int(displayed * 100) - Int($0 * 100) }), gain > 0 {
+                            Text("오늘 \(gain)% 올랐어요!")
+                                .font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
+                        } else {
+                            Text(HousePlan.name(of: house.stage))
+                        }
                         Spacer()
                         if !house.isComplete {
                             Text("\(Int(displayed * 100))%")
