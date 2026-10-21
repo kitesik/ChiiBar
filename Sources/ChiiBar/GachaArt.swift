@@ -166,3 +166,20 @@ enum GachaArt {
                at: CGPoint(x: 160, y: 281))
     }
 }
+
+/// The single and batch draw use exactly the same artwork, clock and reveal motion.
+struct GachaAnimation: View {
+    let result: DrawResult
+    let elapsed: Double
+    let idleTime: Double
+    var reducedMotion = false
+    var body: some View {
+        Canvas { ctx, size in
+            GachaArt.draw(ctx, canvas: size, t: reducedMotion ? GachaArt.finishAt : elapsed,
+                          idleTime: reducedMotion ? 0 : idleTime, result: result)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityLabel(elapsed >= GachaArt.revealAt || reducedMotion
+            ? "\(result.friend.name), \(result.friend.japaneseName)" : "친구 뽑기")
+    }
+}

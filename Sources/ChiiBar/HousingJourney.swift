@@ -64,6 +64,7 @@ enum HousingJourney {
         let asleep = p.activity == .napGround || p.activity == .napFuton
         let celebrating = p.pokeElapsed != nil || p.endingElapsed != nil
         var pose = Pose()
+        pose.homeOutfit = HomeOutfit.at(stage: p.stage)
         pose.blinking = !p.reduceMotion && !asleep && !celebrating && ArrivalMotion.blinking(at: p.t, friend: p.friend)
         pose.eyes = asleep ? .closed : .open
         let elapsed = p.pokeElapsed ?? p.arrivalElapsed ?? ArrivalMotion.elapsed(at: p.t, friend: p.friend)

@@ -1,7 +1,39 @@
 import AppKit
 import ChiiCore
+import CoreGraphics
 
 let args = CommandLine.arguments
+if args.contains("--icon-diagnostics") {
+    MainActor.assumeIsolated {
+        _ = NSApplication.shared
+        let installed = AppIcon.installForRunningApplication()
+        print("runtimeIconInstalled=\(installed), bundle=\(Bundle.main.bundlePath)")
+        if !installed { exit(1) }
+    }
+    exit(0)
+}
+if args.contains("--activity-diagnostics") {
+    MainActor.assumeIsolated {
+        _ = NSApplication.shared
+        let types: [CGEventType] = [.keyDown, .leftMouseDown, .rightMouseDown, .otherMouseDown, .scrollWheel]
+        let available = types.map { CGEventSource.secondsSinceLastEventType(.hidSystemState, eventType: $0) }
+            .map { $0.isFinite && $0 >= 0 && $0 < 100_000_000 }
+        let report: [String: Any] = ["metadataReadable": InputActivityMonitor.latestInput(at: Date()) != nil,
+            "keyboardMetadataReadable": available[0], "activityWindowSeconds": WorkActivity.grace,
+            "dailyGoalHours": 4, "readsTokenLogs": true, "capturesInputContents": false]
+        let data = try! JSONSerialization.data(withJSONObject: report, options: [.sortedKeys])
+        print(String(decoding: data, as: UTF8.self))
+    }
+    exit(0)
+}
+
+if let i = args.firstIndex(of: "--export-app-icon"), i + 1 < args.count {
+    try MainActor.assumeIsolated {
+        _ = NSApplication.shared
+        try AppIcon.export(to: args[i + 1])
+    }
+    exit(0)
+}
 if let i = args.firstIndex(of: "--export-sprites") {
     guard i + 1 < args.count else {
         FileHandle.standardError.write(Data("usage: ChiiBar --export-sprites DIR\n".utf8))

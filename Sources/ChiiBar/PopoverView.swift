@@ -41,19 +41,19 @@ struct Clock<Content: View>: View {
 
 struct PopoverView: View {
     @ObservedObject var model: AppModel
-    @State private var demoModel: AppModel?
     var closeDemo: (() -> Void)?
+    var showDesktop: (() -> Void)?
     var body: some View {
         ZStack {
             Theme.background
-            if demoModel == nil {
             VStack(spacing: 10) {
                 HStack {
-                    Text(model.isDemo ? "친구와 집 둘러보기" : "치이카와 키우기").font(.system(size: 13, weight: .heavy))
+                    Text("치이카와 키우기").font(.system(size: 13, weight: .heavy))
                     Spacer()
-                    Button(model.isDemo ? "체험 끝내기" : "둘러보기") {
-                        if model.isDemo { closeDemo?() } else { demoModel = AppModel.demo() }
-                    }.buttonStyle(.plain).font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.actionText)
+                    if model.isDemo {
+                        Button("체험 끝내기") { closeDemo?() }
+                            .buttonStyle(.plain).font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.actionText)
+                    }
                 }.padding(.horizontal, 14).padding(.top, 8)
                 HStack(spacing: 4) {
                     ForEach(AppTab.allCases, id: \.self) { tab in
@@ -84,16 +84,13 @@ struct PopoverView: View {
                     FriendsView(model: model)
                 } else if model.state.visibleOwnedCount == 0 {
                     FirstFriendWelcome(model: model)
-                } else { HomeView(model: model) }
+                } else { HomeView(model: model, showDesktop: showDesktop) }
             }
-            .allowsHitTesting(model.gacha == nil && model.inspectedFriend == nil)
-            .accessibilityHidden(model.gacha != nil || model.inspectedFriend != nil)
+            .allowsHitTesting(model.gacha == nil && model.batchResults == nil && model.inspectedFriend == nil)
+            .accessibilityHidden(model.gacha != nil || model.batchResults != nil || model.inspectedFriend != nil)
             if let g = model.gacha { GachaOverlay(model: model, session: g) }
+            if let results = model.batchResults { BatchDrawOverlay(model: model, results: results) }
             if let friend = model.inspectedFriend { FriendDetailView(model: model, friend: friend) }
-            }
-            if let demoModel {
-                AnyView(PopoverView(model: demoModel, closeDemo: { self.demoModel = nil }))
-            }
         }
         .frame(width: 340, height: 710)
         .foregroundStyle(Theme.text)
@@ -103,9 +100,19 @@ struct PopoverView: View {
 
 struct HomeView: View {
     @ObservedObject var model: AppModel
+    var showDesktop: (() -> Void)?
     var body: some View {
+        ScrollView {
         VStack(spacing: 5) {
             HouseSceneView(model: model)
+                .overlay(alignment: .bottomTrailing) {
+                    if let showDesktop {
+                        Button("산책가자!", action: showDesktop)
+                            .buttonStyle(WalkActionStyle())
+                            .help("친구와 바탕화면에서 산책해요")
+                            .padding(.trailing, 10).padding(.bottom, 9)
+                    }
+                }
             FriendHeader(model: model)
             StageProgress(model: model)
             if model.isDemo {
@@ -122,6 +129,7 @@ struct HomeView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
+        }
     }
 }
 
@@ -190,13 +198,31 @@ struct FriendHeader: View {
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(Ink.rgb(0x857789))
             Spacer(minLength: 0)
+
         }.padding(.horizontal, 4)
+
+    }
+}
+
+/// A quiet scene action with a small tactile press.
+struct WalkActionStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .foregroundStyle(Ink.rgb(0x715D50))
+            .padding(.horizontal, 11).padding(.vertical, 7)
+            .background(Ink.rgb(configuration.isPressed ? 0xF1E7D5 : 0xFFF9EC), in: RoundedRectangle(cornerRadius: 9))
+            .overlay(RoundedRectangle(cornerRadius: 9).stroke(Ink.rgb(0xB8A592), lineWidth: 0.8))
+            .offset(y: configuration.isPressed ? 1 : 0)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
 struct StageProgress: View {
     @ObservedObject var model: AppModel
-    @State private var hintStartedAt = Date()
+    @State private var showBonusInfo = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var carryover: UpgradeCarryover? {
         guard let event = model.carryover,
@@ -208,96 +234,87 @@ struct StageProgress: View {
         guard let cost = house.nextCost else { return 1 }
         return min(1, Double(house.progress) / Double(cost))
     }
-    var baseline: Double? {
-        guard carryover == nil, let f = model.state.current, let record = model.state.progressToday(for: f, at: model.now),
-              record.startStage == house.stage, let cost = house.nextCost else { return nil }
-        return min(1, Double(record.startProgress) / Double(cost))
-    }
-    private func guidance(_ text: String, icon: String) -> some View {
-        HStack(spacing: 5) {
-            Image(systemName: icon).font(.system(size: 10, weight: .bold))
-                .foregroundStyle(Ink.rgb(0xE9A825))
-            Text(text).font(.system(size: 10, weight: .semibold, design: .rounded)).lineLimit(2)
-        }
-        .foregroundStyle(Theme.hint)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    private func idleHint(index: Int) -> String {
-        if model.building { return "뚝딱뚝딱… 새 집을 준비하고 있어요!" }
-        if house.canBuild { return "재료 다 모았다! 업그레이드 눌러 이사하자!" }
-        let name = model.state.current?.name ?? "친구"
-        let hints = house.isComplete ? [
-            "드디어 꼭대기 집! \(name)와 잠깐 쉬어 가요.",
-            "친구를 톡 눌러 보세요. 쓰다듬어 줄 수 있어요.",
-            "다른 친구는 어떤 집에 살까요? 친구 모음에 가 봐요."
-        ] : [
-            "Codex·Claude Code에서 쓴 토큰이 집 재료가 돼요.",
-            "친구를 톡 눌러 보세요. 쓰다듬어 줄 수 있어요.",
-            "하던 일 마치고 오면, \(name) 집도 한 걸음!",
-            "게이지가 꽉 차면, 내 손으로 새 집을 지어요.",
-            "열심히 했으니까… 잠깐 친구 보고 갈까요?"
-        ]
-        return hints[index % hints.count]
+    private var todayXP: Int64 {
+        guard let friend = model.state.current else { return 0 }
+        return model.state.progressToday(for: friend, at: model.now)?.earned ?? 0
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("LV. \(house.stage)")
+                    .font(.system(size: 10, weight: .heavy, design: .rounded))
+                    .foregroundStyle(Theme.actionText)
+                    .padding(.horizontal, 7).padding(.vertical, 4)
+                    .background(Theme.action.opacity(0.5), in: Capsule())
+                Text(HousePlan.name(of: house.stage)).font(.system(size: 12, weight: .bold))
+                Spacer()
+                Text(house.isComplete ? "최고 레벨" : "")
+                    .font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.soft)
+            }
             Clock(fixed: model.fixedNow) { date in
                 let displayed = carryover?.displayedFraction(target: fraction, at: date, reduceMotion: reduceMotion) ?? fraction
-                let carrying = carryover?.isAnimating(at: date) ?? false
-                let landed = carryover.map { date.timeIntervalSince($0.startsAt) - UpgradeCarryover.duration } ?? -1
-                VStack(spacing: 4) {
-                    Group {
-                        if let event = carryover, date >= event.startsAt, date.timeIntervalSince(event.startsAt) < UpgradeCarryover.duration + 5 {
-                            guidance(carrying ? "남은 경험치 +\(TokenFormat.short(event.amount)) 이어 담는 중…" : "남은 경험치 덕분에 \(Int(fraction * 100))%부터 시작해요!", icon: "sparkles")
-                                .scaleEffect(!reduceMotion && landed >= 0 && landed < 0.4 ? 1 + 0.035 * sin(landed / 0.4 * .pi) : 1, anchor: .leading)
-                                .accessibilityLabel(event.explanation)
-                        } else {
-                            let elapsed = max(0, date.timeIntervalSince(model.fixedNow?.addingTimeInterval(-5) ?? hintStartedAt) - 3)
-                            let phase = elapsed.truncatingRemainder(dividingBy: 12)
-                            let visible = date.timeIntervalSince(hintStartedAt) >= 3 || model.fixedNow != nil
-                            let opacity = visible && phase < 9 ? (reduceMotion ? 1 : min(1, phase / 0.4, (9 - phase) / 0.4)) : 0
-                            guidance(idleHint(index: Int(elapsed / 12)), icon: "lightbulb.fill")
-                                .opacity(opacity)
-                                .accessibilityHidden(opacity < 0.5)
-                        }
-                    }
-                    .frame(height: 28, alignment: .leading)
-                    ProgressTrack(fraction: displayed, sweepFrom: carryover == nil ? model.lastCredit : nil,
-                                  fixedNow: model.fixedNow, baseline: baseline,
-                                  animatesChanges: !reduceMotion && !(carryover?.isAnimating(at: date) ?? false),
-                                  endpointElapsed: carryover.map { date.timeIntervalSince($0.startsAt) - UpgradeCarryover.duration })
-                        .scaleEffect(x: 1, y: !reduceMotion && landed >= 0 && landed < 0.4 ? 1 + 0.12 * sin(landed / 0.4 * .pi) : 1)
-                        .contentShape(Rectangle())
-                        .help(carryover?.explanation ?? "사용한 토큰이 경험치로 쌓여요. 가득 차면 업그레이드 버튼을 눌러 이사할 수 있어요.")
-                    HStack {
-                        if let gain = baseline.map({ Int(displayed * 100) - Int($0 * 100) }), gain > 0 {
-                            Text("오늘 \(gain)% 올랐어요!")
-                                .font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
-                        } else {
-                            Text(HousePlan.name(of: house.stage))
-                        }
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(house.isComplete ? "꿈의 집 완성!" : "다음 집까지")
+                            .font(.system(size: 13, weight: .bold))
                         Spacer()
-                        if !house.isComplete {
-                            Text("\(Int(displayed * 100))%")
-                                .font(.system(size: 12, weight: .heavy, design: .rounded)).monospacedDigit()
-                                .foregroundStyle(Ink.rgb(0x493747))
-                        }
-                    }.font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.text)
+                        Text("\(Int(displayed * 100))%")
+                            .font(.system(size: 24, weight: .bold, design: .rounded)).monospacedDigit()
+                            .foregroundStyle(Theme.actionText)
+                    }
+                    ProgressTrack(fraction: displayed, sweepFrom: nil, fixedNow: model.fixedNow,
+                                  animatesChanges: !reduceMotion && !(carryover?.isAnimating(at: date) ?? false), height: 10)
+                        .accessibilityLabel("집 성장 \(Int(displayed * 100))퍼센트")
+                    if let cost = house.nextCost {
+                        HStack {
+                            Text("\(house.progress.formatted()) / \(cost.formatted()) XP")
+                                .font(.system(size: 10, weight: .medium)).monospacedDigit()
+                            Spacer(minLength: 4)
+                            Text(house.canBuild ? "이사 준비 완료!" : "활동 약 \(WorkTimeFormat.energy(cost - house.progress)) 남음")
+                                .font(.system(size: 10, weight: .semibold))
+                        }.foregroundStyle(Theme.soft)
+                    }
                 }
             }
-            if let cost = house.nextCost {
-                HStack(spacing: 4) {
-                    Text("경험치 \(TokenFormat.short(house.progress)) / \(TokenFormat.short(cost))")
-                    if let carryover {
-                        Image(systemName: "info.circle")
-                            .help(carryover.explanation)
-                            .accessibilityLabel(carryover.explanation)
-                    }
-                }.font(.system(size: 10)).foregroundStyle(Theme.soft)
+            HStack(spacing: 5) {
+                Text("오늘 얻은 경험치")
+                Spacer()
+                Text("+\(todayXP.formatted()) XP")
+                    .fontWeight(.bold).monospacedDigit()
             }
-            if house.canBuild || model.building { UpgradeButton(model: model).padding(.top, 5) }
+            .font(.system(size: 11))
+            .foregroundStyle(Ink.rgb(0x39705B))
+            .padding(.horizontal, 9).padding(.vertical, 7)
+            .background(Ink.rgb(0xEDF5ED), in: RoundedRectangle(cornerRadius: 8))
+            Button { showBonusInfo = true } label: {
+                let extra = model.state.current.flatMap { model.state.progressToday(for: $0, at: model.now)?.extraXP } ?? 0
+                HStack(spacing: 4) {
+                    Text(extra > 0 ? "Extra +\(extra.formatted()) XP 포함" : "로컬 AI를 쓰면 작은 보너스 XP")
+                    Image(systemName: "info.circle")
+                }.font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.soft)
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showBonusInfo) {
+                VStack(alignment: .leading, spacing: 9) {
+                    Text("작은 도움, Extra XP").font(.system(size: 13, weight: .bold))
+                    Text("Claude Code·Codex의 로컬 사용 기록에서 토큰을 확인해 집 성장에 보너스를 더해요.")
+                    Text("환산 토큰 100개당 1 XP\n활동 경험치의 최대 5%\n하루 최대 12,000 XP · 활동 6분 분량")
+                    Text("오늘 얻은 경험치에 포함돼요. 활동 시간과 뽑기권 충전량은 그대로예요. 캐시 토큰은 일부만 반영하며, 기록이 없는 사용은 포함되지 않아요.")
+                        .foregroundStyle(Theme.soft)
+                }.font(.system(size: 11)).padding(16).frame(width: 270)
+                    .foregroundStyle(Theme.text).background(Theme.background)
+            }
+            if let carryover {
+                Text("집 업그레이드 −\(HousePlan.cost(ofStage: house.stage).formatted()) XP · 남은 +\(carryover.amount.formatted()) XP를 이어받았어요.")
+                    .font(.system(size: 10)).foregroundStyle(Theme.soft)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if house.canBuild || model.building { UpgradeButton(model: model).padding(.bottom, 3) }
         }
-        .padding(.horizontal, 4)
+        .foregroundStyle(Theme.text)
+        .padding(12)
+        .background(.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.accent.opacity(0.22), lineWidth: 1))
     }
 }
 
@@ -355,41 +372,31 @@ struct TodayDashboardView: View {
     var body: some View {
         Clock(fixed: model.fixedNow) { date in
             let records = (model.state.dailyProgress ?? [:]).values.filter { $0.day == DayKey.of(date) }
-            let earned = records.reduce(Int64(0)) { $0 + $1.earned }
+            let earned = WorkActivity.energy(for: model.state.workActivity?.seconds(on: date) ?? 0)
             let upgrades = records.reduce(0) { $0 + $1.upgrades }
-            VStack(spacing: 0) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text("오늘의 대시보드")
-                        .font(.custom("AppleSDGothicNeo-Heavy", size: 12))
-                        .foregroundStyle(Ink.rgb(0x625144))
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("오늘의 활동").font(.system(size: 12, weight: .bold))
                     Spacer()
-                    Text(date, format: .dateTime.month().day().locale(Locale(identifier: "ko_KR")))
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(Ink.rgb(0x8C7B66))
+                    Text(model.activityPaused ? "잠시 멈춤" : model.isWorkActive ? "기록 중" : "쉬는 중")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(model.isWorkActive ? Ink.rgb(0x39705B) : Theme.soft)
                 }
-                .padding(.horizontal, 13).padding(.vertical, 10)
-                .background(Ink.rgb(0xF4E9CB))
-                Rectangle().fill(Ink.rgb(0x8D7962).opacity(0.35)).frame(height: 1)
-                HStack(alignment: .center, spacing: 10) {
-                    VStack(spacing: 3) {
-                        UpgradeBadge(count: upgrades)
-                        Text("집을 키운 횟수")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(Ink.rgb(0x897969))
-                    }.frame(width: 112)
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(Ink.rgb(0xCDBF9F).opacity(0.65))
-                        .frame(width: 1, height: 98)
-                    DailyGoalCard(earned: earned)
+                DailyGoalCard(earned: earned)
+                HStack {
+                    Text("오늘 집 업그레이드")
+                    Spacer()
+                    Text("\(upgrades)회").fontWeight(.bold)
+                }.font(.system(size: 11)).foregroundStyle(Theme.soft)
+                if !model.activityReadable {
+                    Button("활동 감지 권한 확인") { model.openActivityPermission() }
                 }
-                .padding(.horizontal, 10).padding(.vertical, 12)
             }
-            .background(Ink.rgb(0xFFFCF1))
-            .clipShape(RoundedRectangle(cornerRadius: 15))
-            .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(Ink.rgb(0x8D7962), lineWidth: 1.4))
-            .compositingGroup()
-            .shadow(color: Ink.rgb(0xCADCCE), radius: 0, y: 3)
-            .accessibilityElement(children: .combine)
+            .padding(12)
+            .background(Ink.rgb(0xFFF9EB), in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Ink.rgb(0xD7C79C).opacity(0.5), lineWidth: 1))
+            .help("키보드·클릭·스크롤 후 5분까지 기록해요. 활동 1분마다 2,000 XP가 쌓여요.")
+
         }
     }
 }
@@ -489,13 +496,13 @@ struct FriendsView: View {
                     }
                     HStack(alignment: .top, spacing: 5) {
                         Image(systemName: "ticket").foregroundStyle(Theme.soft)
-                        Text(model.state.visibleOwnedCount == 0 ? "첫 뽑기권 1장을 선물로 드려요" : "토큰을 쓰면 뽑기권이 충전돼요")
+                        Text(model.isDemo ? "체험용 뽑기권이에요. 실제 기록은 그대로예요." : model.state.visibleOwnedCount == 0 ? "첫 뽑기권 1장을 선물로 드려요" : "활동 1시간마다 뽑기권 1장이 생겨요")
                             .foregroundStyle(Theme.soft)
                     }
                     .font(.system(size: 10, weight: .regular))
                     .fixedSize(horizontal: false, vertical: true)
                     ProgressTrack(fraction: Double(model.state.ticketProgress) / Double(Tuning.ticketCost), sweepFrom: model.lastCredit, fixedNow: model.fixedNow)
-                    Text("다음 뽑기권 \(TokenFormat.short(model.state.ticketProgress)) / \(TokenFormat.short(Tuning.ticketCost)) 경험치")
+                    Text("다음 뽑기권 \(WorkTimeFormat.energy(model.state.ticketProgress)) / \(WorkTimeFormat.energy(Tuning.ticketCost))")
                         .font(.system(size: 10)).foregroundStyle(Theme.soft)
                 }
                 .padding(12).background(.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 14))
@@ -563,10 +570,36 @@ struct CollectionCard: View {
 
 struct DrawButton: View {
     @ObservedObject var model: AppModel
+    @State private var choosing = false
     var body: some View {
-        Button("뽑기") { model.drawTicket() }
+        Button("뽑기") { choosing = true }
             .buttonStyle(PrimaryActionStyle())
-            .disabled(model.state.tickets == 0 || model.building)
+            .disabled(model.state.tickets == 0 || model.building || model.gacha != nil || model.batchResults != nil)
+            .popover(isPresented: $choosing, arrowEdge: .bottom) {
+                DrawChoiceView(tickets: model.state.tickets,
+                    single: { choosing = false; model.drawTicket() },
+                    all: { choosing = false; model.drawAllTickets() })
+            }
+    }
+}
+
+struct DrawChoiceView: View {
+    let tickets: Int
+    var single: () -> Void
+    var all: () -> Void
+    var body: some View {
+        VStack(spacing: 14) {
+            Text("어떻게 만날까요?").font(.system(size: 16, weight: .heavy))
+            Text("뽑기권 \(tickets)장 보유").font(.system(size: 11)).foregroundStyle(Theme.soft)
+            Button(action: single) {
+                Text("하나씩 뽑기").font(.system(size: 14, weight: .bold))
+                    .frame(maxWidth: .infinity)
+            }.buttonStyle(PrimaryActionStyle())
+            Button(action: all) {
+                Text("한 번에 모두 뽑기").font(.system(size: 14, weight: .bold))
+                    .frame(maxWidth: .infinity)
+            }.buttonStyle(PrimaryActionStyle())
+        }.padding(20).frame(width: 260).foregroundStyle(Theme.text).background(Theme.background)
     }
 }
 
@@ -594,12 +627,8 @@ struct GachaOverlay: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             Clock(fixed: model.fixedNow) { date in
-                Canvas { ctx, size in
-                    GachaArt.draw(ctx, canvas: size, t: reduceMotion ? GachaArt.finishAt : date.timeIntervalSince(session.start),
-                                  idleTime: reduceMotion ? 0 : date.timeIntervalSinceReferenceDate, result: session.result)
-                }
-                .accessibilityLabel(date.timeIntervalSince(session.start) >= GachaArt.revealAt || reduceMotion
-                    ? "\(session.result.friend.name), \(session.result.friend.japaneseName)" : "친구 뽑기")
+                GachaAnimation(result: session.result, elapsed: date.timeIntervalSince(session.start),
+                               idleTime: date.timeIntervalSinceReferenceDate, reducedMotion: reduceMotion)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             Clock(fixed: model.fixedNow) { date in

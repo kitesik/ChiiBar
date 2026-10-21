@@ -29,6 +29,7 @@ enum SpriteArt {
             result[entry.id] = strengthenInk(trimmed, character: entry.id)
         }
         // One collectible made from four existing sprites. Keep each member's artwork intact.
+        result["pajamaGreen-individual"] = result[FriendID.pajamaGreen.rawValue]
         if let party = pajamaParty(from: result) { result[FriendID.pajamaGreen.rawValue] = party }
         return result
     }()
@@ -180,8 +181,20 @@ enum SpriteArt {
     }
 
     static func draw(_ ctx: GraphicsContext, _ friend: FriendID, base: CGPoint, size: CGFloat, pose: Pose, silhouette: Bool = false) -> Bool {
+        if friend == .pajamaGreen, pose.homeOutfit?.isVisible == true {
+            for (member, x, y) in [(FriendID.pajamaWhite, -0.35, -0.72), (.pajamaPurple, 0.35, -0.72), (.pajamaGreen, -0.38, 0.0), (.pajamaPink, 0.38, 0.0)] {
+                // Use the individual source image rather than the grouped collectible.
+                _ = drawDressed(ctx, member, base: CGPoint(x: base.x + x * size, y: base.y + y * size), size: size * 0.62, pose: pose, silhouette: silhouette)
+            }
+            return true
+        }
+        return drawDressed(ctx, friend, base: base, size: size, pose: pose, silhouette: silhouette)
+    }
+
+    private static func drawDressed(_ ctx: GraphicsContext, _ friend: FriendID, base: CGPoint, size: CGFloat, pose: Pose, silhouette: Bool) -> Bool {
         // Fail closed: a missing reviewed asset must not revive an invented fallback face.
-        guard let image = images[pose.mangaExpression.asset(for: friend)] ?? images[friend.rawValue] else { return true }
+        let key = friend == .pajamaGreen && pose.homeOutfit?.isVisible == true ? "pajamaGreen-individual" : pose.mangaExpression.asset(for: friend)
+        guard let image = images[key] ?? images[friend.rawValue] else { return true }
         var c = ctx
         c.translateBy(x: base.x, y: base.y)
         c.rotate(by: .radians(pose.tilt))
@@ -191,7 +204,63 @@ enum SpriteArt {
         var resolved = c.resolve(Image(decorative: image, scale: 1))
         if silhouette { resolved.shading = .color(.black) }
         c.draw(resolved, in: CGRect(x: -width / 2, y: -height, width: width, height: height))
+        if !silhouette, let outfit = pose.homeOutfit {
+            HomeOutfitArt.draw(c, outfit: outfit, width: width, height: height, friend: friend)
+        }
         return true
+    }
+
+    /// Repose the existing pixels. The face/ink/palette are never regenerated.
+    static func drawDesktop(_ ctx: GraphicsContext, _ friend: FriendID, behavior: DesktopBehavior,
+                            stage: Int, reduced: Bool) {
+        let action = behavior.action, e = behavior.elapsed
+        let blend = reduced ? 1 : behavior.envelope
+        let expression: MangaExpression = action == .cry && friend == .chiikawa ? .cry
+            : action == .laugh ? MangaExpression.select(friend: friend, stage: stage, time: 0, responding: true) : .base
+        guard let image = images[expression.asset(for: friend)] else { return }
+        let height: CGFloat = friend == .usagi ? 101 : friend == .pajamaGreen ? 106 : friend == .anoko ? 96 : 86
+        let width = min(136, height * CGFloat(image.width) / CGFloat(image.height))
+        let rect = CGRect(x: -width / 2, y: -height, width: width, height: height)
+        var c = ctx
+        let wave = reduced ? 0 : sin(e * 7)
+        let bounce = action == .laugh ? abs(wave) * 2.5 * blend : action == .walk ? abs(wave) * 1.5 : 0
+        c.translateBy(x: 100, y: 184 - bounce)
+        if action == .roll && !reduced {
+            // Roll around the body's centre, not around a foot; settle before walking.
+            let angle = 2 * Double.pi * ArrivalMotion.ease((e - 1.5) / 6)
+            c.translateBy(x: 0, y: -height / 2)
+            c.rotate(by: .radians(angle))
+            c.translateBy(x: 0, y: height / 2)
+        } else if !reduced {
+            c.rotate(by: .radians((action == .cry ? sin(e * 18) * 0.015 : wave * 0.018) * blend))
+        }
+        let seated = action == .sit ? blend : 0
+        // Fold the lower body while leaving the entire face at its original scale.
+        let split = height * 0.24
+        let lowerScale = 1 - 0.45 * seated
+        let drop = split * (1 - lowerScale)
+        let sprite = Image(decorative: image, scale: 1)
+        if seated > 0 {
+            var lower = c
+            lower.scaleBy(x: 1, y: lowerScale)
+            lower.clip(to: Path(CGRect(x: -100, y: -split, width: 200, height: split + 1)))
+            lower.draw(sprite, in: rect)
+            var upper = c
+            upper.translateBy(x: 0, y: drop)
+            upper.clip(to: Path(CGRect(x: -100, y: -height - 1, width: 200, height: height - split + 1)))
+            upper.draw(sprite, in: rect)
+        } else {
+            if action == .stretch && !reduced {
+                c.scaleBy(x: 1 - 0.025 * blend, y: 1 + 0.035 * blend)
+            }
+            c.draw(sprite, in: rect)
+        }
+        // Accessories stay with the original head. The party keeps its grouped sprite intact.
+        if friend != .pajamaGreen {
+            var dressed = c
+            dressed.translateBy(x: 0, y: drop)
+            HomeOutfitArt.draw(dressed, outfit: HomeOutfit.at(stage: stage), width: width, height: height, friend: friend)
+        }
     }
 
     static func drawFace(_ ctx: GraphicsContext, _ friend: FriendID, in rect: CGRect, silhouette: Bool = false) -> Bool {

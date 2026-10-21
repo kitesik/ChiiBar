@@ -3,16 +3,17 @@ import Foundation
 // MARK: - Tuning (initial non-developer work pacing; validate with real cohorts)
 
 public enum Tuning {
-    public static let economyVersion = 3
-    public static let firstPieceCost: Int64 = 20_000
-    public static let pieceCosts: [Int64] = [
-        20_000, 40_000, 80_000, 150_000, 250_000, 400_000,
-        600_000, 900_000, 1_300_000, 1_800_000, 2_500_000, 3_500_000
-    ]
-    public static let ticketCost: Int64 = 500_000
-    public static let dailyTarget: Int64 = 300_000
+    public static let economyVersion = 5
+    public static let firstPieceCost: Int64 = 120_000
+    // Six active hours/day: three early moves on day one, two on day two.
+    public static let upgradeMinutes: [Int64] = [60, 90, 120, 150, 210, 300, 420, 540, 720, 900, 1140, 1440]
+    public static let pieceCosts: [Int64] = upgradeMinutes.map { $0 * WorkActivity.energyPerMinute }
+    static let tokenPieceCosts: [Int64] = [20_000, 40_000, 80_000, 150_000, 250_000, 400_000,
+        600_000, 900_000, 1_300_000, 1_800_000, 2_500_000, 3_500_000]
+    public static let ticketCost: Int64 = 60 * WorkActivity.energyPerMinute
+    public static let dailyTarget: Int64 = 480_000
     public static func duplicateGift(forStage stage: Int) -> Int64 {
-        min(150_000, HousePlan.cost(ofStage: stage) / 10)
+        min(30_000, HousePlan.cost(ofStage: stage) / 10)
     }
     /// Daily diminishing returns: ordinary work is unchanged, marathon sessions stay rewarding.
     public static func experience(forDailyTokens tokens: Int64) -> Int64 {
@@ -173,6 +174,7 @@ public struct DailyProgress: Codable, Sendable, Equatable {
     public var startStage: Int
     public var startProgress: Int64
     public var earned: Int64 = 0
+    public var extraXP: Int64?
     public var upgrades: Int = 0
     public var lastUpgradeAt: Date?
     public init(day: String, observedAt: Date, house: House) {
@@ -197,6 +199,8 @@ public struct GameState: Codable, Sendable, Equatable {
     public var lastTokenAt: Date?
     public var scan = ScanState()
     public var dailyProgress: [FriendID: DailyProgress]?
+    public var workActivity: WorkActivity?
+    public var tokenBonus: TokenBonus?
 
     /// A new state credits tokens from local midnight of `now` and holds one free ticket.
     public init(now: Date, calendar: Calendar = .current) {
@@ -257,24 +261,53 @@ public struct GameState: Codable, Sendable, Equatable {
             let experience = Tuning.experience(forDailyTokens: total) - Tuning.experience(forDailyTokens: previous)
             dayTotals[day] = total
             if lastTokenAt.map({ e.date > $0 }) ?? true { lastTokenAt = e.date }
-            ticketProgress += experience
-            while ticketProgress >= Tuning.ticketCost {
-                ticketProgress -= Tuning.ticketCost
-                tickets += 1
-                out.append(.ticket)
-            }
-            guard let id = current, var h = houses[id], !h.isComplete else { continue }
-            h.progress += experience
-            if var record = dailyProgress?[id], record.day == DayKey.of(e.date) {
-                record.earned += experience
-                dailyProgress?[id] = record
-            }
-            houses[id] = h
+            out += grantEnergy(experience, at: e.date)
         }
         if dayTotals.count > 60 {
             for k in dayTotals.keys.sorted().dropLast(60) { dayTotals[k] = nil }
         }
         return out
+    }
+
+    private mutating func grantEnergy(_ experience: Int64, at date: Date) -> [GameEvent] {
+        var out: [GameEvent] = []
+        ticketProgress += experience
+        while ticketProgress >= Tuning.ticketCost {
+            ticketProgress -= Tuning.ticketCost; tickets += 1; out.append(.ticket)
+        }
+        if let id = current, var house = houses[id], !house.isComplete {
+            house.progress = min(house.progress, Int64.max - experience) + experience
+            if var record = dailyProgress?[id], record.day == DayKey.of(date) {
+                record.earned = min(record.earned, Int64.max - experience) + experience; dailyProgress?[id] = record
+            }
+            houses[id] = house
+        }
+        return out
+    }
+
+    /// Credit non-overlapping intervals from WorkClock, split at local midnight.
+    @discardableResult
+    public mutating func creditActivity(_ intervals: [DateInterval], calendar: Calendar = .current) -> Int64 {
+        var ledger = workActivity ?? WorkActivity()
+        var gained: Int64 = 0
+        for interval in intervals where interval.duration > 0 {
+            var cursor = interval.start
+            while cursor < interval.end {
+                guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: cursor)) else { break }
+                let end = min(dayEnd, interval.end), key = DayKey.of(cursor, calendar: calendar)
+                let previous = ledger.secondsByDay[key, default: 0]
+                let total = previous + end.timeIntervalSince(cursor)
+                let energy = WorkActivity.energy(for: total) - WorkActivity.energy(for: previous)
+                ledger.secondsByDay[key] = total
+                observeProgress(at: cursor)
+                _ = grantEnergy(energy, at: cursor)
+                workActivity = ledger
+                gained += energy + creditTokenBonus([], at: cursor)
+                cursor = end
+            }
+        }
+        workActivity = ledger
+        return gained
     }
 
     /// One explicit upgrade consumes one threshold; surplus remains banked.
@@ -327,6 +360,18 @@ public struct GameState: Codable, Sendable, Equatable {
         h.progress += Tuning.duplicateGift(forStage: giftedStage)
         houses[friend] = h
         return DrawResult(friend: friend, outcome: .gift(stage: giftedStage))
+    }
+
+    /// Snapshot the starting balance: refunded tickets stay for the next batch.
+    /// Never loop until tickets reach zero (finished homes refund duplicates).
+    public mutating func drawAll<R: RandomNumberGenerator>(using rng: inout R, at date: Date = Date()) -> [DrawResult] {
+        let count = tickets
+        var results: [DrawResult] = []
+        for _ in 0..<count {
+            guard let result = draw(using: &rng, at: date) else { break }
+            results.append(result)
+        }
+        return results
     }
 
     public mutating func select(_ id: FriendID) {
@@ -433,10 +478,13 @@ public enum Store {
     }
 
     private static func isValid(_ s: GameState) -> Bool {
-        (s.economyVersion == nil || s.economyVersion == 2 || s.economyVersion == Tuning.economyVersion)
+        (s.economyVersion == nil || s.economyVersion == 2 || s.economyVersion == 3 || s.economyVersion == 4 || s.economyVersion == Tuning.economyVersion)
         && s.tickets >= 0 && s.ticketProgress >= 0
-        && s.ticketProgress < (s.economyVersion == nil ? Tuning.legacyTicketCost : s.economyVersion == 2 ? 150_000 : Tuning.ticketCost)
+        && s.ticketProgress < (s.economyVersion == nil ? Tuning.legacyTicketCost : s.economyVersion == 2 ? 150_000 : (s.economyVersion == 3 || s.economyVersion == 4) ? 500_000 : Tuning.ticketCost)
         && s.dayTotals.values.allSatisfy { $0 >= 0 }
+        && (s.workActivity?.secondsByDay.values.allSatisfy { $0.isFinite && $0 >= 0 && $0 < 172_800 } ?? true)
+        && (s.tokenBonus.map { $0.tokens >= 0 && $0.tokens <= TokenBonus.dailyLimit * TokenBonus.tokensPerXP
+            && $0.awarded >= 0 && $0.awarded <= TokenBonus.dailyLimit } ?? true)
         && Set(s.met).count == s.met.count && Set(s.met) == Set(s.houses.keys)
         && (s.current.map { s.houses[$0] != nil } ?? (s.visibleOwnedCount == 0))
         && s.houses.values.allSatisfy {
@@ -466,25 +514,31 @@ public enum Store {
     /// Preserve fractional progress AND any surplus, without auto-building or minting tickets.
     private static func migrate(_ original: GameState) -> GameState {
         guard original.economyVersion != Tuning.economyVersion else { return original }
-        if original.economyVersion == 2 {
-            var updated = original
-            updated.ticketProgress = original.ticketProgress * Tuning.ticketCost / 150_000
-            updated.economyVersion = Tuning.economyVersion
-            return updated
-        }
         var state = original
         func scaled(_ value: Int64, old: Int64, new: Int64) -> Int64 {
-            // All new costs are lower. Quotient/remainder avoids overflow and float rounding.
-            (value / old) * new + (value % old) * new / old
+            let (whole, overflow) = (value / old).multipliedReportingOverflow(by: new)
+            if overflow { return Int64.max }
+            let fraction = (value % old) * new / old
+            let (total, additionOverflow) = whole.addingReportingOverflow(fraction)
+            return additionOverflow ? Int64.max : total
+        }
+        if original.economyVersion == 4 {
+            state.ticketProgress = scaled(state.ticketProgress, old: 500_000, new: Tuning.ticketCost)
+            state.economyVersion = Tuning.economyVersion
+            return state
         }
         for (friend, house) in state.houses where !house.isComplete {
             state.houses[friend]?.progress = scaled(house.progress,
-                old: Tuning.legacyPieceCosts[house.stage - 1], new: house.nextCost!)
+                old: original.economyVersion == nil ? Tuning.legacyPieceCosts[house.stage - 1] : Tuning.tokenPieceCosts[house.stage - 1], new: house.nextCost!)
         }
-        state.ticketProgress = scaled(state.ticketProgress, old: Tuning.legacyTicketCost, new: Tuning.ticketCost)
+        state.ticketProgress = scaled(state.ticketProgress, old: original.economyVersion == nil ? Tuning.legacyTicketCost : original.economyVersion == 2 ? 150_000 : 500_000, new: Tuning.ticketCost)
         for (friend, record) in state.dailyProgress ?? [:] where (1..<HousePlan.lastStage).contains(record.startStage) {
             state.dailyProgress?[friend]?.startProgress = scaled(record.startProgress,
-                old: Tuning.legacyPieceCosts[record.startStage - 1], new: Tuning.pieceCosts[record.startStage - 1])
+                old: original.economyVersion == nil ? Tuning.legacyPieceCosts[record.startStage - 1] : Tuning.tokenPieceCosts[record.startStage - 1], new: Tuning.pieceCosts[record.startStage - 1])
+        }
+        for (friend, house) in state.archivedPajamaHouses ?? [:] where !house.isComplete {
+            state.archivedPajamaHouses?[friend]?.progress = scaled(house.progress,
+                old: original.economyVersion == nil ? Tuning.legacyPieceCosts[house.stage - 1] : Tuning.tokenPieceCosts[house.stage - 1], new: house.nextCost!)
         }
         state.economyVersion = Tuning.economyVersion
         return state

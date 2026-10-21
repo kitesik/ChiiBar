@@ -8,8 +8,6 @@ struct FirstFriendWelcome: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 10)
-            Text("우리의 첫 만남").font(.system(size: 10, weight: .bold, design: .rounded))
-                .tracking(2).foregroundStyle(Ink.rgb(0x867254))
             Text("어떤 친구가 기다릴까?")
                 .font(.system(size: 22, weight: .heavy, design: .rounded)).tracking(-0.7)
                 .padding(.top, 8)
@@ -35,8 +33,6 @@ struct FirstFriendWelcome: View {
                 }.padding(.vertical, 5)
             }.buttonStyle(UpgradeActionStyle())
                 .padding(.top, 14).disabled(model.state.tickets == 0 || model.gacha != nil)
-            Text("\(FriendID.visible.count)종 중 한 친구가 찾아와요")
-                .font(.system(size: 10)).foregroundStyle(Theme.soft).padding(.top, 12)
             Button("친구별 뽑기 확률 보기") { model.tab = .friends }
                 .font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.actionText)
                 .buttonStyle(.plain).padding(.top, 8)

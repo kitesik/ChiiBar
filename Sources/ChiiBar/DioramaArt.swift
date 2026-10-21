@@ -92,6 +92,7 @@ enum DioramaArt {
         let elapsed = p.pokeElapsed ?? (newHome ? completion : nil) ?? p.arrivalElapsed ?? ArrivalMotion.elapsed(at: p.t, friend: p.friend)
         let lift = p.reduceMotion || asleep ? 0 : ArrivalMotion.lift(elapsed: elapsed)
         var pose = Pose()
+        pose.homeOutfit = HomeOutfit.at(stage: p.stage)
         pose.mangaExpression = expression
         pose.eyes = asleep ? .closed : celebrating ? .happy : .open
         pose.arms = celebrating ? .up : pose.arms

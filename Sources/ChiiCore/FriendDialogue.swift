@@ -27,7 +27,8 @@ private struct DialogueSet {
 
 extension FriendID {
     public func dialogue(for moment: DialogueMoment) -> String {
-        dialogueSet.lines(for: moment).randomElement()!
+        if Int.random(in: 0..<4) == 0 { return japaneseLines.randomElement()! }
+        return dialogueSet.lines(for: moment).randomElement()!
     }
 
     private var dialogueSet: DialogueSet {
@@ -99,6 +100,48 @@ extension FriendID {
                         upgraded: ["…됐다!", "책 놓을 자리도 생겼어…"],
                         completed: ["…여기서 같이 읽자", "참… 아늑하다…"],
                         gift: ["…이거, 너 주려고", "마음에 들면 좋겠다…"])
+        }
+    }
+}
+
+// Original fan lines for the desktop companion; a line stays stable within its time slot.
+extension FriendID {
+    public func desktopLine(at time: Double) -> String {
+        let lines: [String]
+        switch self {
+        case .chiikawa: lines = ["…응!", "와… 와아…", "…헤헤", "으응…♪"]
+        case .hachiware: lines = ["옆에서 응원할게!", "조금 쉬었다 할까?", "오늘도 같이 있네!", "한 걸음씩 가 보자!"]
+        case .usagi: lines = ["야하앗!", "프루루루!", "우라야하!", "야하! 야하!"]
+        case .momonga: lines = ["귀여운 내가 지나간다!", "나 좀 봐 줘!", "더 귀여워해 줘!", "여긴 내 자리!"]
+        case .kurimanju: lines = ["후우…", "…음", "크으…", "…후우♪"]
+        case .rakko: lines = ["서두르지 않아도 된다.", "잠깐 쉬어도 좋겠군.", "잘하고 있군.", "흠, 좋은 산책이군."]
+        case .shisa: lines = ["오늘도 힘낼게요!", "같이 산책해요!", "잠깐 쉬어 가요!", "응원하고 있어요!"]
+        case .anoko: lines = ["…아…", "후…", "…아하", "후… 후…"]
+        case .kani: lines = ["…같이 읽을래?", "잠깐, 책갈피만…", "…헤헤", "…여기 아늑하네"]
+        case .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple: lines = ["♪ ♫", "하나, 둘…♪", "함께…♪", "…♪!"]
+        case .pochette, .labor: lines = ["차근차근 해 보자.", "잠깐 쉬어 가자."]
+        }
+        let slot = Int(max(0, time) / 14)
+        if slot % 5 == 4 { return japaneseLines[(slot / 5) % japaneseLines.count] }
+        return lines[(slot - slot / 5) % lines.count]
+    }
+}
+
+// Short fan-authored Japanese variants, not claims of canonical episode quotations.
+extension FriendID {
+    private var japaneseLines: [String] {
+        switch self {
+        case .chiikawa: ["…うん!", "わ… わあ…", "…えへへ"]
+        case .hachiware: ["いっしょに、ひと休みしよ!", "少しずつ、やってみよう!", "今日はどんな一日かな?"]
+        case .usagi: ["ヤハッ!", "プルルル!", "ウラヤハ!"]
+        case .momonga: ["もっと、かわいがって!", "こっちも見て!", "ほめてもいいぞ!"]
+        case .kurimanju: ["ふぅ…", "…うん", "はぁ…♪"]
+        case .rakko: ["少し休むとしよう。", "焦らなくていい。", "いい調子だな。"]
+        case .shisa: ["今日もがんばります!", "いっしょに歩きましょう!", "ありがとうございます!"]
+        case .anoko: ["…あ…", "ふぅ…", "…あは"]
+        case .kani: ["…いっしょに読む?", "しおりを、はさんで…", "…えへへ"]
+        case .pajamaGreen, .pajamaPink, .pajamaWhite, .pajamaPurple: ["いっしょに…♪", "いち、に…♪"]
+        case .pochette, .labor: ["ひと休みしよう。", "少しずつ、いこう。"]
         }
     }
 }

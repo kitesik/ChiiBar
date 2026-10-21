@@ -14,6 +14,26 @@ enum Previews {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         var files: [String] = []
         func save<V: View>(_ name: String, _ size: CGSize, _ view: V) {
+            // ScrollView needs a window and layout pass; ImageRenderer omits its contents.
+            if ProcessInfo.processInfo.environment["CHIIBAR_FEEDBACK_ONLY"] == "1" {
+                let host = NSHostingView(rootView: view.frame(width: size.width, height: size.height))
+                let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: [.borderless], backing: .buffered, defer: false)
+                window.isReleasedWhenClosed = false
+                window.isOpaque = false
+                window.backgroundColor = .clear
+                window.hasShadow = false
+                window.contentView = host
+                window.orderFrontRegardless()
+                RunLoop.current.run(until: Date().addingTimeInterval(0.25))
+                host.layoutSubtreeIfNeeded()
+                guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { fatalError("preview bitmap unavailable") }
+                host.cacheDisplay(in: host.bounds, to: bitmap)
+                guard let png = bitmap.representation(using: .png, properties: [:]) else { fatalError("preview PNG unavailable") }
+                try! png.write(to: out.appendingPathComponent(name + ".png"))
+                window.close()
+                files.append(name + ".png")
+                return
+            }
             let r = ImageRenderer(content: view.frame(width: size.width, height: size.height))
             r.scale = ProcessInfo.processInfo.environment["CHIIBAR_PREVIEW_SCALE"].flatMap(Double.init) ?? 2
             guard let cg = r.cgImage, let png = NSBitmapImageRep(cgImage: cg).representation(using: .png, properties: [:]) else {
@@ -27,6 +47,85 @@ enum Previews {
             Canvas { ctx, size in HouseArt.draw(ctx, canvas: size, p) }
         }
         let sz = HouseArt.size
+
+        if ProcessInfo.processInfo.environment["CHIIBAR_DESKTOP_ONLY"] == "1" {
+            for friend in FriendID.visible {
+                let model = fixtureModel(lastTokenAgo: 60)
+                model.state.current = friend
+                model.state.houses[friend] = House(stage: 3)
+                for action in Set(DesktopBehavior.actions(for: friend) + [.walk]) {
+                    save("desktop_" + friend.rawValue + "_" + action.rawValue, CGSize(width: 200, height: 224),
+                        DesktopCompanionView(model: model, openApp: {}, hide: {},
+                            previewBehavior: DesktopBehavior(action: action, elapsed: 4.5)))
+                }
+            }
+            renderDesktopMotion(to: out)
+            return
+        }
+
+        if ProcessInfo.processInfo.environment["CHIIBAR_ACTIVITY_ONLY"] == "1" {
+            let model = fixtureModel(lastTokenAgo: 60)
+            var activity = WorkActivity(); activity.secondsByDay[DayKey.of(now)] = 150 * 60
+            model.state.workActivity = activity
+            model.latestWorkInput = now.addingTimeInterval(-30)
+            model.state.current = .hachiware
+            model.state.houses[.hachiware] = House(stage: 3, progress: HousePlan.cost(ofStage: 4) / 2)
+            model.state.observeProgress(at: now)
+            model.state.dailyProgress?[.hachiware]?.earned = 60_000
+            save("activity_home", CGSize(width: 340, height: 710), PopoverView(model: model, showDesktop: {}))
+            model.state.dailyProgress?[.hachiware]?.extraXP = 3_000
+            save("activity_bonus", CGSize(width: 340, height: 710), PopoverView(model: model, showDesktop: {}))
+            model.state.houses[.hachiware]?.progress = HousePlan.cost(ofStage: 4)
+            save("activity_upgrade_ready", CGSize(width: 340, height: 710), PopoverView(model: model, showDesktop: {}))
+            model.state.houses[.hachiware] = House(stage: 12, progress: HousePlan.cost(ofStage: 13) / 2)
+            save("activity_late", CGSize(width: 340, height: 710), PopoverView(model: model, showDesktop: {}))
+            save("activity_carryover", CGSize(width: 320, height: 270), StageProgress(model: carryoverModel(elapsed: 2)).background(Theme.background))
+            model.tab = .friends
+            save("activity_friends", CGSize(width: 340, height: 710), PopoverView(model: model))
+            save("activity_goal", CGSize(width: 155, height: 160), DailyGoalCard(earned: WorkActivity.energy(for: 4 * 3600)).background(Theme.background))
+            return
+        }
+
+
+        if ProcessInfo.processInfo.environment["CHIIBAR_FEEDBACK_ONLY"] == "1" {
+            let demo = AppModel.drawDemo()
+            precondition(demo.isDemo && demo.state.tickets == 149 && demo.tab == .friends)
+            demo.drawAllTickets()
+            let afterDraw = demo.state
+            demo.drawAllTickets()
+            precondition(demo.state == afterDraw && demo.batchResults?.count == 149)
+            let model = fixtureModel(lastTokenAgo: 60)
+            model.state.tickets = 149
+            model.tab = .friends
+            save("feedback_draw_149", CGSize(width: 340, height: 710), PopoverView(model: model))
+            save("feedback_draw_choice", CGSize(width: 260, height: 260), DrawChoiceView(tickets: 149, single: {}, all: {}))
+            model.drawAllTickets()
+            model.batchStartedAt = now.addingTimeInterval(-1.8)
+            save("feedback_batch_loading", CGSize(width: 340, height: 710), PopoverView(model: model))
+            let single = AppModel(state: model.state, stateURL: nil, fixedNow: now)
+            single.gacha = GachaSession(start: now.addingTimeInterval(-1.8), result: model.batchResults!.first!)
+            save("feedback_single_motion", CGSize(width: 340, height: 710), PopoverView(model: single))
+            model.batchStartedAt = now.addingTimeInterval(-3.5)
+            save("feedback_batch_reveal", CGSize(width: 340, height: 710), PopoverView(model: model))
+            model.batchStartedAt = now.addingTimeInterval(-GachaArt.finishAt - 1)
+            save("feedback_batch_results", CGSize(width: 340, height: 710), PopoverView(model: model))
+            model.finishBatch()
+            model.state.current = .chiikawa
+            model.state.houses[.chiikawa] = House(stage: 8)
+            let pet = AppModel(state: model.state, stateURL: nil, fixedNow: Date(timeIntervalSinceReferenceDate: 1008))
+            save("feedback_desktop", CGSize(width: 200, height: 200), DesktopCompanionView(model: pet, openApp: {}, hide: {}))
+            save("feedback_costumes", CGSize(width: 480, height: 420), Canvas { ctx, _ in
+                for (row, friend) in [FriendID.chiikawa, .kurimanju, .usagi].enumerated() {
+                    for (column, stage) in [7, 8, 9, 11].enumerated() {
+                        var pose = Pose(); pose.homeOutfit = HomeOutfit.at(stage: stage)
+                        FriendArt.draw(ctx, friend, base: CGPoint(x: 60 + column * 120, y: 110 + row * 140), size: 56, pose: pose)
+                        ctx.draw(Text(HousePlan.name(of: stage) + " · " + HomeOutfit.at(stage: stage).rawValue).font(.system(size: 9)).foregroundColor(Theme.text),
+                                 at: CGPoint(x: 60 + column * 120, y: 126 + row * 140))
+                    }
+                }
+            }.background(Theme.background))
+            return
+        }
 
         if ProcessInfo.processInfo.environment["CHIIBAR_FRIENDS_ONLY"] == "1" {
             let model = fixtureModel(lastTokenAgo: 60)
@@ -409,6 +508,26 @@ enum Previews {
             renderer.scale = 2
             guard let image = renderer.cgImage else { fatalError("carryover frame failed") }
             CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 1.0 / 12]] as CFDictionary)
+        }
+        precondition(CGImageDestinationFinalize(destination))
+    }
+
+    static func renderDesktopMotion(to out: URL) {
+        let model = fixtureModel(lastTokenAgo: 60)
+        model.state.current = .chiikawa
+        model.state.houses[.chiikawa] = House(stage: 3)
+        let actions: [DesktopAction] = [.sit, .roll, .laugh, .cry]
+        let frames = 4 * 100
+        guard let destination = CGImageDestinationCreateWithURL(out.appendingPathComponent("desktop-motion.gif") as CFURL,
+            "com.compuserve.gif" as CFString, frames, nil) else { return }
+        CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
+        for frame in 0..<frames {
+            let behavior = DesktopBehavior(action: actions[frame / 100], elapsed: Double(frame % 100) / 10)
+            let renderer = ImageRenderer(content: DesktopCompanionView(model: model, openApp: {}, hide: {}, previewBehavior: behavior)
+                .background(Ink.rgb(0xE6EEF0)))
+            renderer.scale = 2
+            guard let image = renderer.cgImage else { fatalError("desktop frame failed") }
+            CGImageDestinationAddImage(destination, image, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: 0.1]] as CFDictionary)
         }
         precondition(CGImageDestinationFinalize(destination))
     }

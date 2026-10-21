@@ -1,5 +1,7 @@
 import ChiiCore
 import Foundation
+import AppKit
+import CoreGraphics
 
 struct GachaSession {
     var start: Date
@@ -21,6 +23,8 @@ final class AppModel: ObservableObject {
     @Published var bubble: (text: String, start: Date)?
     @Published var pokeStart: Date?
     @Published var gacha: GachaSession?
+    @Published var batchResults: [DrawResult]?
+    @Published var batchStartedAt: Date?
     @Published var lastCredit: Date?
     @Published var upgradeNotice: (text: String, start: Date)?
     @Published var building = false
@@ -30,8 +34,13 @@ final class AppModel: ObservableObject {
     let fixedNow: Date?
     var activityOverride: Activity?
     private let stateURL: URL?
-    private var scanning = false
-    private var timer: Timer?
+    @Published var latestWorkInput: Date?
+    @Published var activityPaused = false
+    @Published var activityReadable = true
+    private var inputMonitor: InputActivityMonitor?
+    private var bonusTimer: Timer?
+    private var bonusTask: Task<Void, Never>?
+    private var lastActivitySave = Date.distantPast
 
     init(state: GameState, stateURL: URL?, fixedNow: Date? = nil, isDemo: Bool = false) {
         self.isDemo = isDemo
@@ -46,40 +55,65 @@ final class AppModel: ObservableObject {
     var now: Date { fixedNow ?? Date() }
 
     func startLive() {
-        refresh()
-        timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
-            Task { @MainActor [weak self] in self?.refresh() }
+        guard !isDemo, inputMonitor == nil else { return }
+        inputMonitor = InputActivityMonitor { [weak self] intervals, lastInput, paused, readable in
+            guard let self else { return }
+            self.latestWorkInput = lastInput
+            self.activityPaused = paused
+            self.activityReadable = readable
+            let before = self.state.currentHouse
+            self.state.observeProgress(at: self.now)
+            let energy = self.state.creditActivity(intervals)
+            self.trackProgress(from: before)
+            if energy > 0 { self.lastCredit = self.now }
+            if self.now.timeIntervalSince(self.lastActivitySave) >= 15 {
+                self.save(); self.lastActivitySave = self.now
+            }
+        }
+        inputMonitor?.start()
+        if state.tokenBonus == nil { state.tokenBonus = TokenBonus(at: now); save() }
+        refreshTokenBonus()
+        bonusTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refreshTokenBonus() }
         }
     }
 
-    func refresh() {
-        guard !scanning else { return }
-        scanning = true
-        let scan = state.scan, cutoff = state.creditFrom
-        Task.detached(priority: .utility) {
-            var s = scan
-            let events = UsageScanner.scan(state: &s, claudeRoot: UsageScanner.defaultClaudeRoot,
-                                           codexRoot: UsageScanner.defaultCodexRoot, fastForwardClaudeBefore: cutoff)
-            let done = s
-            await MainActor.run { self.apply(scan: done, events: events) }
+    func stopLive() {
+        bonusTimer?.invalidate(); bonusTimer = nil
+        bonusTask?.cancel(); bonusTask = nil
+        inputMonitor?.stop(); inputMonitor = nil; save()
+    }
+
+    private func refreshTokenBonus() {
+        guard bonusTask == nil, !isDemo else { return }
+        let checkpoint = state.scan
+        let cutoff = state.tokenBonus?.startedAt ?? now
+        bonusTask = Task { [weak self] in
+            let result = await Task.detached(priority: .utility) {
+                var scan = checkpoint
+                let events = UsageScanner.scan(state: &scan, claudeRoot: UsageScanner.defaultClaudeRoot,
+                    codexRoot: UsageScanner.defaultCodexRoot, fastForwardClaudeBefore: cutoff)
+                return (scan, events)
+            }.value
+            guard let self, !Task.isCancelled else { return }
+            let before = self.state.currentHouse
+            self.state.scan = result.0
+            let gained = self.state.creditTokenBonus(result.1, at: self.now)
+            if gained > 0 { self.lastCredit = self.now; self.trackProgress(from: before) }
+            self.save()
+            self.bonusTask = nil
         }
     }
 
-    func apply(scan: ScanState, events: [TokenEvent]) {
-        scanning = false
-        let previousProgress = state.dailyProgress
-        state.observeProgress(at: now)
-        guard scan != state.scan || !events.isEmpty else {
-            if previousProgress != state.dailyProgress { save() }
-            return
+    var isWorkActive: Bool {
+        !activityPaused && latestWorkInput.map { now.timeIntervalSince($0) < WorkActivity.grace } == true
+    }
+
+    func openActivityPermission() {
+        if !CGRequestListenEventAccess(),
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") {
+            NSWorkspace.shared.open(url)
         }
-        state.scan = scan
-        let before = state.currentHouse
-        let gained = state.credit(events)
-        trackProgress(from: before)
-        if events.contains(where: { $0.date >= state.creditFrom && $0.tokens > 0 }) { lastCredit = now }
-        handle(gained)
-        save()
     }
 
     func handle(_ events: [GameEvent]) {
@@ -107,11 +141,20 @@ final class AppModel: ObservableObject {
 
     static func demo() -> AppModel {
         var state = GameState(now: Date())
+        state.tickets = 149
         state.met = FriendID.visible
         state.houses = Dictionary(uniqueKeysWithValues: FriendID.visible.map { ($0, House()) })
         state.current = .chiikawa
         let model = AppModel(state: state, stateURL: nil, isDemo: true)
         model.activityOverride = .tea
+        return model
+    }
+
+    static func drawDemo() -> AppModel {
+        var state = GameState(now: Date())
+        state.tickets = 149
+        let model = AppModel(state: state, stateURL: nil, isDemo: true)
+        model.tab = .friends
         return model
     }
 
@@ -138,7 +181,7 @@ final class AppModel: ObservableObject {
     }
 
     func buildHouse() {
-        guard !building, !(carryover?.isAnimating(at: now) ?? false), gacha == nil, state.currentHouse?.canBuild == true else { return }
+        guard !building, !(carryover?.isAnimating(at: now) ?? false), gacha == nil, batchResults == nil, state.currentHouse?.canBuild == true else { return }
         let previousHouse = state.currentHouse
         let events = state.build(at: now)
         trackProgress(from: previousHouse)
@@ -166,7 +209,7 @@ final class AppModel: ObservableObject {
     }
 
     func select(_ f: FriendID) {
-        guard !building else { return }
+        guard !building, gacha == nil, batchResults == nil else { return }
         reveal = nil
         upgradeNotice = nil
         endingStart = nil
@@ -182,7 +225,7 @@ final class AppModel: ObservableObject {
     }
 
     func drawTicket() {
-        guard gacha == nil, !building else { return }
+        guard gacha == nil, batchResults == nil, !building else { return }
         state.observeProgress(at: now)
         var rng = SystemRandomNumberGenerator()
         guard let r = state.draw(using: &rng, at: now) else { return }
@@ -190,6 +233,30 @@ final class AppModel: ObservableObject {
         upgradeNotice = nil
         gacha = GachaSession(start: now, result: r)
         save()
+    }
+
+    func drawAllTickets() {
+        guard gacha == nil, batchResults == nil, !building, state.tickets > 0 else { return }
+        state.observeProgress(at: now)
+        var rng = SystemRandomNumberGenerator()
+        let results = state.drawAll(using: &rng, at: now)
+        state.observeProgress(at: now)
+        upgradeNotice = nil
+        reveal = nil
+        carryover = nil
+        progressTransition = nil
+        batchStartedAt = now
+        batchResults = results
+        save()
+    }
+
+    func finishBatch() {
+        batchResults = nil
+        batchStartedAt = nil
+        arrivalStart = now
+        pokeStart = nil
+        endingStart = nil
+        tab = .friends
     }
 
     func finishGacha(reducedMotion: Bool = false) {
@@ -220,7 +287,7 @@ final class AppModel: ObservableObject {
 
     func sceneParams(at date: Date) -> SceneParams? {
         guard let f = state.current, let h = state.houses[f] else { return nil }
-        let mood = Mood.at(date, lastTokenAt: state.lastTokenAt)
+        let mood = Mood.at(date, lastTokenAt: latestWorkInput)
         let activity = activityOverride ?? Activity.choose(mood: mood, stage: h.stage, now: date, friend: f)
         func since(_ d: Date?, _ limit: Double) -> Double? {
             guard let d else { return nil }

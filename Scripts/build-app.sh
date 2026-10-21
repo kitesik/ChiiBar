@@ -37,6 +37,16 @@ for number in $(seq 0 30); do
 done
 [[ -s Art/StampNumbers/badge-pastel.png ]] || exit 1
 cp -R Art/StampNumbers "$app/Contents/Resources/StampNumbers"
+iconset="$(mktemp -d "${TMPDIR:-/tmp}/chiibar-icon.XXXXXX")/AppIcon.iconset"
+mkdir -p "$iconset"
+CHIIBAR_SPRITES="$PWD/Art/Sprites" "$app/Contents/MacOS/ChiiBar" --export-app-icon "$iconset/master.png"
+for pixels in 16 32 128 256 512; do
+    sips -z "$pixels" "$pixels" "$iconset/master.png" --out "$iconset/icon_${pixels}x${pixels}.png" >/dev/null
+    retina=$((pixels * 2))
+    sips -z "$retina" "$retina" "$iconset/master.png" --out "$iconset/icon_${pixels}x${pixels}@2x.png" >/dev/null
+done
+rm "$iconset/master.png"
+iconutil -c icns "$iconset" -o "$app/Contents/Resources/AppIcon.icns"
 cat > "$app/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -47,8 +57,9 @@ cat > "$app/Contents/Info.plist" <<PLIST
     <key>CFBundleName</key><string>치이카와 키우기</string>
     <key>CFBundleDisplayName</key><string>치이카와 키우기</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.4.25</string>
-    <key>CFBundleVersion</key><string>53</string>
+    <key>CFBundleIconFile</key><string>AppIcon.icns</string>
+    <key>CFBundleShortVersionString</key><string>0.5.7</string>
+    <key>CFBundleVersion</key><string>65</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>

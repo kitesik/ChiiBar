@@ -95,6 +95,7 @@ struct Pose {
     var blush: Double = 1
     var earTilt: Double = 0
     var blinking = false
+    var homeOutfit: HomeOutfit?
 }
 
 enum FriendArt {
