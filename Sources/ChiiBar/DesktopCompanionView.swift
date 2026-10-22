@@ -6,6 +6,8 @@ struct DesktopCompanionView: View {
     @ObservedObject var model: AppModel
     var openApp: () -> Void
     var hide: () -> Void
+    /// Called while the friend is dragged (translation in points, y down) and once more when it ends.
+    var drag: (CGSize, Bool) -> Void = { _, _ in }
     var previewBehavior: DesktopBehavior? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
@@ -41,7 +43,12 @@ struct DesktopCompanionView: View {
                     }.frame(width: 200, height: 224)
                     .allowsHitTesting(false)
                     Color.clear.frame(width: 160, height: 150).contentShape(Rectangle())
-                        .offset(y: 50).onTapGesture { model.poke() }
+                        .offset(y: 50)
+                        // The tap target swallows mouse-down, so window-background dragging never starts. Move the panel here.
+                        .gesture(DragGesture(minimumDistance: 3)
+                            .onChanged { drag($0.translation, false) }
+                            .onEnded { drag($0.translation, true) })
+                        .onTapGesture { model.poke() }
                         .accessibilityLabel("\(friend.name), \(behavior.action.label)")
                         .accessibilityAddTraits(.isButton).accessibilityAction { model.poke() }
                         .contextMenu {

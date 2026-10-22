@@ -165,7 +165,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.contentViewController = NSHostingController(rootView: DesktopCompanionView(model: model,
-            openApp: { [weak self] in self?.showPopover() }, hide: { [weak self] in self?.hideDesktop() }))
+            openApp: { [weak self] in self?.showPopover() }, hide: { [weak self] in self?.hideDesktop() },
+            drag: { [weak self] translation, ended in self?.dragDesktop(translation, ended: ended) }))
         if let saved = UserDefaults.standard.array(forKey: "desktopPetOrigin") as? [Double], saved.count == 2 {
             panel.setFrameOrigin(CGPoint(x: saved[0], y: saved[1]))
         } else if let screen = NSScreen.main {
@@ -191,6 +192,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         desktopPanel?.close()
         desktopPanel = nil
         UserDefaults.standard.set(false, forKey: "desktopCompanionVisible")
+    }
+
+    /// Screen-space anchor for a drag. SwiftUI translations are window-relative, and the window moves with the drag,
+    /// so the first event fixes where the press happened and later events follow the mouse in screen coordinates.
+    private var desktopDragStart: (mouse: CGPoint, origin: CGPoint)?
+
+    private func dragDesktop(_ translation: CGSize, ended: Bool) {
+        guard let panel = desktopPanel else { return }
+        let mouse = NSEvent.mouseLocation
+        if desktopDragStart == nil {
+            desktopDragStart = (CGPoint(x: mouse.x - translation.width, y: mouse.y + translation.height), panel.frame.origin)
+        }
+        if let start = desktopDragStart {
+            panel.setFrameOrigin(CGPoint(x: start.origin.x + mouse.x - start.mouse.x, y: start.origin.y + mouse.y - start.mouse.y))
+        }
+        if ended {
+            desktopDragStart = nil
+            desktopTarget = nil
+            desktopPauseUntil = Date().addingTimeInterval(1.5)
+            saveDesktopPosition()
+        }
     }
 
     private func saveDesktopPosition() {
