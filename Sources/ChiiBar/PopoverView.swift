@@ -128,8 +128,11 @@ struct HomeView: View {
             } else { TodayDashboardView(model: model) }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 10).padding(.vertical, 6)
+        .padding(.horizontal, 12).padding(.vertical, 6)
         }
+        // With "always show scroll bars" (or a mouse attached) the legacy scroller takes ~15pt on the right
+        // and pushes the content off-center. The popover scrolls by wheel or trackpad, so no bar is needed.
+        .scrollIndicators(.never)
     }
 }
 
@@ -523,6 +526,7 @@ struct FriendsView: View {
                 Spacer(minLength: 0)
             }.padding(.horizontal, 12).padding(.bottom, 12)
         }
+        .scrollIndicators(.never)   // same as HomeView: keep both margins equal when scroll bars are always shown
     }
 }
 
