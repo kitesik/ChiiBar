@@ -52,6 +52,7 @@ struct CardFoilBackground: View {
 
 struct DrawOddsCard: View {
     let firstDraw: Bool
+    var ownedFriends: Set<FriendID> = []
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
@@ -60,7 +61,7 @@ struct DrawOddsCard: View {
                 Text("전체 \(FriendID.visible.count)종").font(.system(size: 9, weight: .medium)).foregroundStyle(Theme.soft)
             }.padding(.horizontal, 2)
             ForEach([1, 2, 3], id: \.self) { tier in
-                RarityPackRow(tier: tier)
+                RarityPackRow(tier: tier, ownedFriends: ownedFriends)
             }
             Text(firstDraw ? "첫 뽑기도 같은 확률 · \(FriendID.visible.count)종 모두 만날 수 있어요" : "매번 같은 확률 · 이미 만난 친구도 나와요")
                 .font(.system(size: 9)).foregroundStyle(Theme.soft)
@@ -74,6 +75,7 @@ struct DrawOddsCard: View {
 
 private struct RarityPackRow: View {
     let tier: Int
+    let ownedFriends: Set<FriendID>
     private var finish: CardFinish { CardFinish(tier: tier) }
     var body: some View {
         VStack(spacing: 0) {
@@ -94,7 +96,7 @@ private struct RarityPackRow: View {
                 .background(LinearGradient(colors: [Ink.rgb(0x374351), Ink.rgb(0x202834)], startPoint: .leading, endPoint: .trailing))
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 7), count: 3), spacing: 7) {
                 ForEach(DrawOdds.displayOrder.filter { $0.rarity == tier }, id: \.self) { friend in
-                    OddsCollectorCard(friend: friend, finish: finish)
+                    OddsCollectorCard(friend: friend, finish: finish, owned: ownedFriends.contains(friend))
                 }
             }.padding(7)
                 .background(Ink.rgb(0xF5F1E8))
@@ -108,6 +110,7 @@ private struct RarityPackRow: View {
 private struct OddsCollectorCard: View {
     let friend: FriendID
     let finish: CardFinish
+    let owned: Bool
     @State private var hovering = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
@@ -115,7 +118,7 @@ private struct OddsCollectorCard: View {
             ZStack {
                 CardFoilBackground(finish: finish, highlighted: hovering)
                 Canvas { context, size in
-                    _ = SpriteArt.drawFace(context, friend, in: CGRect(origin: .zero, size: size), silhouette: true)
+                    _ = SpriteArt.drawFace(context, friend, in: CGRect(origin: .zero, size: size), silhouette: !owned)
                 }.frame(width: 38, height: 38)
                     .shadow(color: finish.ink.opacity(0.12), radius: 0, y: 2)
             }.frame(height: 46)

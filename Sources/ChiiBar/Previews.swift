@@ -55,6 +55,8 @@ enum Previews {
                 model.state.houses[friend] = House(stage: friend == .chiikawa ? 8 : 3)
             }
             save("01_collection", CGSize(width: 340, height: 710), PopoverView(model: model))
+            save("04_odds", CGSize(width: 316, height: 840),
+                 DrawOddsCard(firstDraw: false, ownedFriends: Set(model.state.houses.keys)).background(Theme.background))
             save("03_companions", CGSize(width: 600, height: 250), HStack(spacing: 0) {
                 ForEach([FriendID.kurimanju, .usagi, .shisa], id: \.self) { friend in
                     let pet = fixtureModel(lastTokenAgo: 60)

@@ -292,14 +292,14 @@ struct StageProgress: View {
             Button { showBonusInfo = true } label: {
                 let extra = model.state.current.flatMap { model.state.progressToday(for: $0, at: model.now)?.extraXP } ?? 0
                 HStack(spacing: 4) {
-                    Text(extra > 0 ? "Extra +\(extra.formatted()) XP 포함" : "로컬 AI를 쓰면 작은 보너스 XP")
+                    Text("추가 경험치 +\(extra.formatted()) XP")
                     Image(systemName: "info.circle")
                 }.font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.soft)
             }
             .buttonStyle(.plain)
             .popover(isPresented: $showBonusInfo) {
                 VStack(alignment: .leading, spacing: 9) {
-                    Text("작은 도움, Extra XP").font(.system(size: 13, weight: .bold))
+                    Text("추가 경험치").font(.system(size: 13, weight: .bold))
                     Text("Claude Code·Codex의 로컬 사용 기록에서 토큰을 확인해 집 성장에 보너스를 더해요.")
                     Text("환산 토큰 100개당 1 XP\n활동 경험치의 최대 5%\n하루 최대 12,000 XP · 활동 6분 분량")
                     Text("오늘 얻은 경험치에 포함돼요. 활동 시간과 뽑기권 충전량은 그대로예요. 캐시 토큰은 일부만 반영하며, 기록이 없는 사용은 포함되지 않아요.")
@@ -523,7 +523,7 @@ struct FriendsView: View {
                     }
                 }.padding(3).background(Ink.rgb(0xE5EDF1), in: RoundedRectangle(cornerRadius: 10))
                 if showingOdds {
-                    DrawOddsCard(firstDraw: model.state.visibleOwnedCount == 0)
+                    DrawOddsCard(firstDraw: model.state.visibleOwnedCount == 0, ownedFriends: Set(model.state.houses.keys))
                 } else {
                 HStack {
                     Text("친구 모음").font(.system(size: 14, weight: .bold))
@@ -558,8 +558,8 @@ struct CollectionCard: View {
                     if house != nil {
                         FriendArt.draw(ctx, friend, base: CGPoint(x: size.width / 2, y: size.height - 3), size: 23, pose: Pose())
                     } else {
-                        ctx.draw(Text("?").font(.system(size: 30, weight: .bold)).foregroundColor(finish.ink.opacity(0.5)),
-                                 at: CGPoint(x: size.width / 2, y: size.height / 2))
+                        _ = SpriteArt.draw(ctx, friend, base: CGPoint(x: size.width / 2, y: size.height - 3),
+                                           size: 23, pose: Pose(), silhouette: true)
                     }
                 }
                 .frame(height: 44)
@@ -578,7 +578,7 @@ struct CollectionCard: View {
                 VStack(spacing: 3) {
                     Text(friend.name).font(.system(size: 12, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
                         .foregroundStyle(finish.ink)
-                    Text(house.map { "Lv. \($0.stage) · \(HousePlan.name(of: $0.stage))" } ?? "아직 만나기 전")
+                    Text(house.map { "Lv. \($0.stage) · \(HousePlan.name(of: $0.stage))" } ?? "")
                         .font(.system(size: 9)).foregroundStyle(Theme.soft)
                         .lineLimit(2).multilineTextAlignment(.center)
                         .frame(height: 18)
