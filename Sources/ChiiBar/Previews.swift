@@ -48,6 +48,24 @@ enum Previews {
         }
         let sz = HouseArt.size
 
+        if ProcessInfo.processInfo.environment["CHIIBAR_REVIEW_1023"] == "1" {
+            let model = fixtureModel(lastTokenAgo: 60)
+            model.tab = .friends
+            for friend in FriendID.visible where friend != .pajamaGreen {
+                model.state.houses[friend] = House(stage: friend == .chiikawa ? 8 : 3)
+            }
+            save("01_collection", CGSize(width: 340, height: 710), PopoverView(model: model))
+            save("03_companions", CGSize(width: 600, height: 250), HStack(spacing: 0) {
+                ForEach([FriendID.kurimanju, .usagi, .shisa], id: \.self) { friend in
+                    let pet = fixtureModel(lastTokenAgo: 60)
+                    let _ = pet.state.current = friend
+                    DesktopCompanionView(model: pet, openApp: {}, hide: {},
+                        previewBehavior: DesktopBehavior(action: .sit, elapsed: 4.5))
+                }
+            }.background(Theme.background))
+            return
+        }
+
         if ProcessInfo.processInfo.environment["CHIIBAR_DESKTOP_ONLY"] == "1" {
             for friend in FriendID.visible {
                 let model = fixtureModel(lastTokenAgo: 60)

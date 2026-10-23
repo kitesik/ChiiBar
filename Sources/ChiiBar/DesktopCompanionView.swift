@@ -23,18 +23,20 @@ struct DesktopCompanionView: View {
                         Text(responding ? model.bubble?.text ?? behavior.line(for: friend, time: time)
                              : behavior.line(for: friend, time: time))
                             .font(.system(size: 12, weight: .semibold, design: .rounded))
-                            .foregroundStyle(Theme.text).multilineTextAlignment(.center)
-                            .padding(.horizontal, 12).padding(.vertical, 9)
+                            .foregroundStyle(Theme.text).multilineTextAlignment(.center).lineLimit(2)
+                            .padding(.horizontal, 12).padding(.vertical, 7)
                             .background(Ink.rgb(0xFFF9ED), in: RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Ink.rgb(0xC5AB8D), lineWidth: 1))
+                            .shadow(color: .black.opacity(0.09), radius: 3, y: 2)
                             .overlay(alignment: .bottom) {
                                 Triangle().fill(Ink.rgb(0xFFF9ED)).frame(width: 12, height: 8).offset(y: 7)
-                            }.padding(.top, 5).allowsHitTesting(false)
+                            }.padding(.top, friend == .usagi || friend == .pajamaGreen ? 40 : 64).allowsHitTesting(false)
                     }
                     Canvas { ctx, _ in
                         SpriteArt.drawDesktop(ctx, friend, behavior: behavior,
                             stage: model.state.currentHouse?.stage ?? 1, reduced: reduceMotion)
-                        let name = ctx.resolve(Text(friend.japaneseName)
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        let name = ctx.resolve(Text(friend.name + " · " + friend.japaneseName)
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
                             .foregroundStyle(Ink.rgb(0x5E514A)))
                         let width = name.measure(in: CGSize(width: 190, height: 24)).width + 16
                         ctx.fill(Path(roundedRect: CGRect(x: 100 - width / 2, y: 200, width: width, height: 22),

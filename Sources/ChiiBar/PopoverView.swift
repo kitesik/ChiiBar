@@ -487,6 +487,7 @@ struct Sweep: View {
 
 struct FriendsView: View {
     @ObservedObject var model: AppModel
+    @State private var showingOdds = false
     var body: some View {
         ScrollView {
         VStack(alignment: .leading, spacing: 10) {
@@ -509,7 +510,21 @@ struct FriendsView: View {
                         .font(.system(size: 10)).foregroundStyle(Theme.soft)
                 }
                 .padding(12).background(.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 14))
-                DrawOddsCard(firstDraw: model.state.visibleOwnedCount == 0)
+                HStack(spacing: 4) {
+                    ForEach([false, true], id: \.self) { odds in
+                        Button { showingOdds = odds } label: {
+                            Text(odds ? "뽑기 확률" : "친구 모음")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(showingOdds == odds ? Theme.actionText : Theme.text)
+                                .frame(maxWidth: .infinity).padding(.vertical, 8)
+                                .background(showingOdds == odds ? Color.white : Color.clear, in: RoundedRectangle(cornerRadius: 8))
+                        }.buttonStyle(.plain)
+                        .accessibilityAddTraits(showingOdds == odds ? .isSelected : [])
+                    }
+                }.padding(3).background(Ink.rgb(0xE5EDF1), in: RoundedRectangle(cornerRadius: 10))
+                if showingOdds {
+                    DrawOddsCard(firstDraw: model.state.visibleOwnedCount == 0)
+                } else {
                 HStack {
                     Text("친구 모음").font(.system(size: 14, weight: .bold))
                     Spacer()
@@ -521,8 +536,9 @@ struct FriendsView: View {
                         CollectionCard(model: model, friend: f)
                     }
                 }
-                Text("카드를 누르면 친구 소개를 볼 수 있어요.")
+                Text("카드를 누르면 소개와 친구의 집을 볼 수 있어요.")
                     .font(.system(size: 10)).foregroundStyle(Theme.soft)
+                }
                 Spacer(minLength: 0)
             }.padding(.horizontal, 12).padding(.bottom, 12)
         }
@@ -540,21 +556,32 @@ struct CollectionCard: View {
             VStack(spacing: 0) {
                 Canvas { ctx, size in
                     if house != nil {
-                        FriendArt.draw(ctx, friend, base: CGPoint(x: size.width / 2, y: size.height - 3), size: 28, pose: Pose())
+                        FriendArt.draw(ctx, friend, base: CGPoint(x: size.width / 2, y: size.height - 3), size: 23, pose: Pose())
                     } else {
                         ctx.draw(Text("?").font(.system(size: 30, weight: .bold)).foregroundColor(finish.ink.opacity(0.5)),
                                  at: CGPoint(x: size.width / 2, y: size.height / 2))
                     }
                 }
-                .frame(height: 56)
+                .frame(height: 44)
                 .background(CardFoilBackground(finish: finish))
+                .overlay(alignment: .topLeading) {
+                    Text(finish.code).font(.system(size: 8, weight: .heavy, design: .rounded))
+                        .foregroundStyle(finish.ink).padding(.horizontal, 5).padding(.vertical, 3)
+                        .background(.white.opacity(0.85), in: Capsule()).padding(4)
+                }
+                .overlay(alignment: .topTrailing) {
+                    if model.state.current == friend {
+                        Image(systemName: "heart.fill").font(.system(size: 10))
+                            .foregroundStyle(Ink.rgb(0xBD6379)).padding(5)
+                    }
+                }
                 VStack(spacing: 3) {
                     Text(friend.name).font(.system(size: 12, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
                         .foregroundStyle(finish.ink)
-                    Text(house.map { HousePlan.name(of: $0.stage) } ?? "미보유")
+                    Text(house.map { "Lv. \($0.stage) · \(HousePlan.name(of: $0.stage))" } ?? "아직 만나기 전")
                         .font(.system(size: 9)).foregroundStyle(Theme.soft)
                         .lineLimit(2).multilineTextAlignment(.center)
-                        .frame(height: 24)
+                        .frame(height: 18)
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, 5)
                 .background(Ink.rgb(0xFFFDF5))
